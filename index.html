@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Electron Hello World</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Hello World!</h1>
+            <p class="subtitle">Welcome to your Electron application</p>
+        </header>
+        
+        <main>
+            <div class="info-card">
+                <h2>System Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">Platform:</span>
+                        <span id="platform" class="value">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Architecture:</span>
+                        <span id="arch" class="value">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Node.js:</span>
+                        <span id="node-version" class="value">Loading...</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Electron:</span>
+                        <span id="electron-version" class="value">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button id="demo-button" class="btn btn-primary">
+                    Click me! 🎉
+                </button>
+                <button id="platform-button" class="btn btn-secondary">
+                    Show Platform Info
+                </button>
+            </div>
+            
+            <div id="message" class="message hidden"></div>
+        </main>
+        
+        <footer>
+            <p>Built with ❤️ using Electron</p>
+            <p class="small">Cross-platform desktop app for Windows & Linux</p>
+        </footer>
+    </div>
+    
+    <script src="renderer.js"></script>
+</body>
+</html>

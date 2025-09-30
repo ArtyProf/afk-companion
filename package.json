@@ -1,0 +1,66 @@
+{
+  "name": "electron-hello-world",
+  "version": "1.0.0",
+  "description": "A simple Hello World Electron app for Windows and Linux",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux",
+    "build:all": "electron-builder --win --linux",
+    "dist": "npm run build:all",
+    "pack:win": "electron-packager . electron-hello-world --platform=win32 --arch=x64 --out=dist --overwrite",
+    "pack:linux": "electron-packager . electron-hello-world --platform=linux --arch=x64 --out=dist --overwrite",
+    "pack:all": "npm run pack:win && npm run pack:linux"
+  },
+  "keywords": [
+    "electron",
+    "hello-world",
+    "cross-platform"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4",
+    "electron-packager": "^17.1.2"
+  },
+  "build": {
+    "appId": "com.yourcompany.electron-hello-world",
+    "productName": "Electron Hello World",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "renderer.js",
+      "index.html",
+      "styles.css"
+    ],
+    "extraMetadata": {
+      "main": "main.js"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "dir"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "dir"
+        }
+      ]
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dir"
+        }
+      ]
+    }
+  }
+}

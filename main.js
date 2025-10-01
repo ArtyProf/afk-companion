@@ -1,145 +1,193 @@
-const { app, BrowserWindow, Menu, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 
-// Keep a global reference of the window object
 let mainWindow;
+let tray;
 
-function createWindow() {
+const createWindow = () => {
   // Create the browser window
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 400,
+    height: 500,
+    resizable: false,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
     },
-    icon: path.join(__dirname, 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
-    show: false // Don't show until ready
+    icon: path.join(__dirname, 'assets/icon.png'),
+    show: false,
+    titleBarStyle: 'default'
   });
 
-  // Load the index.html file
+  // Load the index.html
   mainWindow.loadFile('index.html');
 
-  // Show window when ready to prevent visual flash
+  // Show window when ready
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
   });
 
-  // Open DevTools in development
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.webContents.openDevTools();
-  }
-
-  // Emitted when the window is closed
-  mainWindow.on('closed', () => {
-    mainWindow = null;
+  // Handle window minimize to tray
+  mainWindow.on('minimize', (event) => {
+    event.preventDefault();
+    mainWindow.hide();
+    if (!tray) {
+      createTray();
+    }
   });
 
-  // Create application menu
-  createMenu();
-}
-
-function createMenu() {
-  const template = [
-    {
-      label: 'File',
-      submenu: [
-        {
-          label: 'About',
-          click: () => {
-            dialog.showMessageBox(mainWindow, {
-              type: 'info',
-              title: 'About',
-              message: 'Electron Hello World',
-              detail: `Version: ${app.getVersion()}\nElectron: ${process.versions.electron}\nNode: ${process.versions.node}\nPlatform: ${process.platform}`
-            });
-          }
-        },
-        { type: 'separator' },
-        {
-          label: 'Exit',
-          accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Ctrl+Q',
-          click: () => {
-            app.quit();
-          }
-        }
-      ]
-    },
-    {
-      label: 'View',
-      submenu: [
-        { role: 'reload' },
-        { role: 'forceReload' },
-        { role: 'toggleDevTools' },
-        { type: 'separator' },
-        { role: 'resetZoom' },
-        { role: 'zoomIn' },
-        { role: 'zoomOut' },
-        { type: 'separator' },
-        { role: 'togglefullscreen' }
-      ]
-    },
-    {
-      label: 'Window',
-      submenu: [
-        { role: 'minimize' },
-        { role: 'close' }
-      ]
+  // Handle window close
+  mainWindow.on('close', (event) => {
+    if (!app.isQuiting) {
+      event.preventDefault();
+      mainWindow.hide();
+      if (!tray) {
+        createTray();
+      }
     }
-  ];
+  });
+};
 
-  // macOS specific menu adjustments
-  if (process.platform === 'darwin') {
-    template.unshift({
-      label: app.getName(),
-      submenu: [
-        { role: 'about' },
-        { type: 'separator' },
-        { role: 'services' },
-        { type: 'separator' },
-        { role: 'hide' },
-        { role: 'hideOthers' },
-        { role: 'unhide' },
-        { type: 'separator' },
-        { role: 'quit' }
-      ]
-    });
-
-    // Window menu
-    template[3].submenu = [
-      { role: 'close' },
-      { role: 'minimize' },
-      { role: 'zoom' },
-      { type: 'separator' },
-      { role: 'front' }
-    ];
+const createTray = () => {
+  // Create tray icon
+  const iconPath = path.join(__dirname, 'assets/tray-icon.png');
+  let trayIcon;
+  
+  try {
+    trayIcon = nativeImage.createFromPath(iconPath);
+  } catch (error) {
+    // Fallback to a simple icon if file doesn't exist
+    trayIcon = nativeImage.createEmpty();
   }
+  
+  tray = new Tray(trayIcon);
+  
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Show AFK Companion',
+      click: () => {
+        mainWindow.show();
+      }
+    },
+    {
+      label: 'Quit',
+      click: () => {
+        app.isQuiting = true;
+        app.quit();
+      }
+    }
+  ]);
+  
+  tray.setContextMenu(contextMenu);
+  tray.setToolTip('AFK Companion');
+  
+  tray.on('double-click', () => {
+    mainWindow.show();
+  });
+};
 
-  const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu);
-}
-
-// This method will be called when Electron has finished initialization
+// App event handlers
 app.whenReady().then(createWindow);
 
-// Quit when all windows are closed
 app.on('window-all-closed', () => {
-  // On macOS, keep app running even when all windows are closed
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
 app.on('activate', () => {
-  // On macOS, re-create window when dock icon is clicked
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
 });
 
-// Security: Prevent new window creation
+// Handle IPC messages from renderer
+ipcMain.handle('get-platform', () => {
+  return process.platform;
+});
+
+// Handle mouse movement simulation
+ipcMain.handle('simulate-mouse-movement', () => {
+  try {
+    // Get current mouse position and move it by 1 pixel
+    const { screen } = require('electron');
+    const cursor = screen.getCursorScreenPoint();
+    
+    // Move cursor by 1 pixel and then back (invisible to user)
+    const newX = cursor.x + 1;
+    const newY = cursor.y;
+    
+    // Use child_process to execute system commands for mouse movement
+    const { exec } = require('child_process');
+    
+    if (process.platform === 'win32') {
+      // Windows: Use PowerShell to move mouse
+      exec(`powershell.exe -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point(${newX}, ${newY})"`, (error) => {
+        if (!error) {
+          // Move back to original position after 10ms
+          setTimeout(() => {
+            exec(`powershell.exe -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point(${cursor.x}, ${cursor.y})"`);
+          }, 10);
+        }
+      });
+    } else if (process.platform === 'linux') {
+      // Linux: Use xdotool
+      exec(`xdotool mousemove ${newX} ${newY}`, (error) => {
+        if (!error) {
+          setTimeout(() => {
+            exec(`xdotool mousemove ${cursor.x} ${cursor.y}`);
+          }, 10);
+        }
+      });
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error simulating mouse movement:', error);
+    return false;
+  }
+});
+
+// Handle key press simulation
+ipcMain.handle('simulate-key-press', () => {
+  try {
+    const { exec } = require('child_process');
+    
+    if (process.platform === 'win32') {
+      // Windows: Send F15 key (rarely used, safe for games)
+      exec('powershell.exe -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait(\'{F15}\')"');
+    } else if (process.platform === 'linux') {
+      // Linux: Use xdotool to send F15
+      exec('xdotool key F15');
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error simulating key press:', error);
+    return false;
+  }
+});
+
+// Handle window jiggle (fallback method)
+ipcMain.handle('jiggle-window', () => {
+  try {
+    if (mainWindow) {
+      const [x, y] = mainWindow.getPosition();
+      mainWindow.setPosition(x + 1, y);
+      setTimeout(() => {
+        mainWindow.setPosition(x, y);
+      }, 10);
+    }
+    return true;
+  } catch (error) {
+    console.error('Error jiggling window:', error);
+    return false;
+  }
+});
+
+// Security
 app.on('web-contents-created', (event, contents) => {
-  contents.on('new-window', (event, navigationUrl) => {
-    event.preventDefault();
+  contents.on('new-window', (navigationEvent) => {
+    navigationEvent.preventDefault();
   });
 });

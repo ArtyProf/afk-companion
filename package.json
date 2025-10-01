@@ -1,66 +1,46 @@
 {
-  "name": "electron-hello-world",
-  "version": "1.0.0",
-  "description": "A simple Hello World Electron app for Windows and Linux",
+  "name": "afk-companion",
+  "version": "0.2.0",
+  "description": "AFK Companion - Anti-idle utility to prevent being marked as away",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
-    "build:win": "electron-builder --win",
-    "build:linux": "electron-builder --linux",
-    "build:all": "electron-builder --win --linux",
-    "dist": "npm run build:all",
-    "pack:win": "electron-packager . electron-hello-world --platform=win32 --arch=x64 --out=dist --overwrite",
-    "pack:linux": "electron-packager . electron-hello-world --platform=linux --arch=x64 --out=dist --overwrite",
-    "pack:all": "npm run pack:win && npm run pack:linux"
+    "dist": "electron-builder --publish=never"
   },
   "keywords": [
     "electron",
-    "hello-world",
-    "cross-platform"
+    "afk",
+    "anti-idle",
+    "gaming",
+    "utility"
   ],
-  "author": "Your Name",
+  "author": "ArtyProf",
   "license": "MIT",
   "devDependencies": {
     "electron": "^27.0.0",
-    "electron-builder": "^24.6.4",
-    "electron-packager": "^17.1.2"
+    "electron-builder": "^24.6.4"
   },
+  "dependencies": {},
   "build": {
-    "appId": "com.yourcompany.electron-hello-world",
-    "productName": "Electron Hello World",
+    "appId": "com.artyprof.afk-companion",
+    "productName": "AFK Companion",
     "directories": {
       "output": "dist"
     },
     "files": [
-      "main.js",
-      "renderer.js",
-      "index.html",
-      "styles.css"
-    ],
-    "extraMetadata": {
-      "main": "main.js"
-    },
-    "win": {
-      "target": [
-        {
-          "target": "dir"
-        }
-      ]
-    },
-    "linux": {
-      "target": [
-        {
-          "target": "dir"
-        }
-      ]
-    },
-    "mac": {
-      "target": [
-        {
-          "target": "dir"
-        }
-      ]
-    }
+      "**/*",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/._*",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+      "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+      "!**/{appveyor.yml,.travis.yml,circle.yml}",
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+    ]
   }
 }

@@ -22,6 +22,7 @@ ehthumbs.db
 Thumbs.db
 
 # IDE files
+.vs/
 .vscode/
 .idea/
 *.swp

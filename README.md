@@ -1,204 +1,115 @@
-# Electron Hello World App
+# 🎮 AFK Companion
 
-A simple cross-platform Hello World application built with Electron that runs on Windows and Linux.
+A cross-platform desktop utility to prevent being marked as idle/AFK in games and applications.
 
-## Features
+## ✨ Features
 
-- 🚀 Cross-platform compatibility (Windows & Linux)
-- 🎨 Modern, responsive UI with gradient backgrounds
-- 💻 System information display
-- 🔧 Platform-specific optimizations
-- 📦 Ready-to-build distribution packages
-- ⌨️ Keyboard shortcuts
-- 🖱️ Interactive buttons and animations
+- **Cross-Platform**: Works on Windows and Linux
+- **Multiple Action Types**: Mouse movement, key press (F15), or both
+- **Customizable Intervals**: 30 seconds to 5 minutes
+- **System Tray Support**: Minimizes to tray for background operation
+- **Safe Actions**: Uses minimal, non-intrusive system interactions
+- **Real-time Statistics**: Track actions performed and running time
+- **Keyboard Shortcuts**: Ctrl+Space or Alt+Space to toggle
 
-## Prerequisites
+## 🚀 Quick Start
 
-Before running this application, make sure you have:
-
-- [Node.js](https://nodejs.org/) (version 16 or higher)
-- npm (comes with Node.js)
-
-## Installation
-
-1. Clone or download this repository
-2. Navigate to the project directory:
-   ```bash
-   cd electron_app
-   ```
-3. Install dependencies:
+1. **Install Dependencies**:
    ```bash
    npm install
    ```
 
-## Running the Application
+2. **Run the Application**:
+   ```bash
+   npm start
+   ```
 
-### Development Mode
-```bash
-npm start
-```
+3. **Configure Settings**:
+   - Choose your preferred interval (default: 1 minute)
+   - Select action type (mouse movement recommended)
+   - Click "Start Anti-AFK"
 
-This will launch the Electron app in development mode with DevTools available.
-
-## Building for Distribution
-
-### Quick Build (Recommended)
-On Windows:
-```bash
-build.bat
-```
-
-On Linux:
-```bash
-chmod +x build.sh
-./build.sh
-```
-
-### Manual Build Commands
-
-#### Build for Windows
-```bash
-npm run pack:win
-```
-
-#### Build for Linux
-```bash
-npm run pack:linux
-```
-
-#### Build for Both Platforms
-```bash
-npm run pack:all
-```
-
-### Alternative Build Method (may have permission issues)
-```bash
-npm run build:win
-npm run build:linux
-```
-
-## Distribution Packages
-
-After building, you'll find the packaged applications in the `dist/` folder:
+## ⚙️ How It Works
 
 ### Windows
-- `dist/electron-hello-world-win32-x64/electron-hello-world.exe`
-- Ready-to-run executable (no installation required)
-- x64 architecture
+- **Mouse Movement**: Uses PowerShell to move cursor by 1 pixel and back
+- **Key Press**: Sends F15 key (safe, rarely used by applications)
 
-### Linux
-- `dist/electron-hello-world-linux-x64/electron-hello-world`
-- Ready-to-run executable (no installation required)
-- x64 architecture
+### Linux  
+- **Mouse Movement**: Uses `xdotool` to move cursor
+- **Key Press**: Sends F15 key via `xdotool`
 
-## Project Structure
+> **Note**: On Linux, you may need to install `xdotool`:
+> ```bash
+> sudo apt install xdotool  # Ubuntu/Debian
+> sudo dnf install xdotool  # Fedora
+> ```
 
-```
-electron_app/
-├── main.js              # Main process (Electron entry point)
-├── renderer.js          # Renderer process (UI logic)
-├── index.html           # Main window HTML
-├── styles.css           # Application styles
-├── package.json         # Project configuration & dependencies
-├── assets/              # Icons and other assets
-└── dist/               # Built distribution packages (after build)
-```
+## 🎯 Action Types
 
-## Key Features Explained
+- **Mouse Movement**: Moves cursor by 1 pixel (invisible to user)
+- **Key Press**: Sends F15 key (doesn't interfere with games)
+- **Both**: Combines mouse and key actions
 
-### Cross-Platform Support
-- **Windows**: Uses native Windows styling and conventions
-- **Linux**: Adapts to Linux desktop environments
-- **Responsive**: Works on different screen sizes
+## 🔧 Settings
 
-### System Information
-The app displays:
-- Operating system platform
-- System architecture
-- Node.js version
-- Electron version
-- Detailed system specs (CPU, memory, uptime)
+- **Interval**: How often to perform actions (30s - 5min)
+- **Action Type**: Choose between mouse, key, or both
+- **Background Mode**: Minimize to system tray
 
-### Security Features
-- Context isolation for security
-- Prevention of new window creation
-- External link handling through system browser
+## 🛡️ Safety & Privacy
 
-### Menu System
-- Cross-platform application menu
-- Platform-specific menu adaptations
-- Keyboard shortcuts (Ctrl+Q to quit, etc.)
+- ✅ **Local Only**: No data sent anywhere
+- ✅ **Minimal Impact**: Uses tiny system resources
+- ✅ **Non-Intrusive**: Actions designed to be invisible
+- ✅ **Game Safe**: Uses keys (F15) that don't conflict with games
+- ✅ **Open Source**: Full source code available
 
-## Customization
+## 📊 Statistics
 
-### Changing the App Icon
-1. Replace files in the `assets/` folder:
-   - `icon.ico` for Windows
-   - `icon.png` for Linux
-2. Icons should be at least 256x256 pixels
+The app tracks:
+- Number of actions performed
+- Total running time
+- Countdown to next action
 
-### Modifying the UI
-- Edit `index.html` for structure
-- Modify `styles.css` for appearance
-- Update `renderer.js` for functionality
+## 🎯 Use Cases
 
-### App Configuration
-Edit `package.json` to change:
-- App name and description
-- Build settings
-- Target platforms
-- App ID and metadata
+- **Gaming**: Prevent AFK kicks in multiplayer games
+- **Work**: Keep status active during breaks
+- **Streaming**: Maintain active status while away
+- **Remote Work**: Prevent auto-lock during presentations
 
-## Development Tips
+## ⌨️ Keyboard Shortcuts
 
-### Debugging
-- Press `F12` or `Ctrl+Shift+I` to open DevTools
-- Use `console.log()` in renderer.js for debugging
-- Check the terminal for main process logs
+- `Ctrl + Space`: Toggle AFK protection on/off
+- `Alt + Space`: Toggle AFK protection on/off
 
-### Hot Reload
-The app doesn't have hot reload by default. Restart with `npm start` after changes.
+## 🔧 Building
 
-### Adding Dependencies
+To create distributable builds:
+
 ```bash
-npm install <package-name>
+npm run build
 ```
 
-For build-time dependencies:
-```bash
-npm install --save-dev <package-name>
-```
+This creates platform-specific installers in the `dist/` folder.
 
-## Common Issues & Solutions
+## 🤝 Contributing
 
-### Build Issues
-1. **electron-builder permission errors**: Use electron-packager commands instead (`npm run pack:win`)
-2. **Python/Visual Studio errors on Windows**: Install Visual Studio Build Tools (if using electron-builder)
-3. **Symbolic link errors**: Run as administrator or use the packager scripts instead
-4. **Cache issues**: Clear electron-builder cache: `Remove-Item -Path "$env:LOCALAPPDATA\electron-builder\Cache" -Recurse -Force`
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test on both Windows and Linux
+5. Submit a pull request
 
-### Runtime Issues
-1. **App won't start**: Check Node.js version compatibility
-2. **White screen**: Check browser console for JavaScript errors
-3. **GPU process errors**: These are usually harmless warnings on some systems
-4. **Menu not showing**: Restart the application
+## 📝 License
 
-## Next Steps
+MIT License - Feel free to use and modify.
 
-Consider adding:
-- Auto-updater functionality
-- Configuration/settings persistence
-- Additional platform integrations
-- Custom protocols
-- Native system notifications
-- File system operations
+## ⚠️ Disclaimer
 
-## Resources
+This tool is for legitimate use cases like preventing unwanted AFK timeouts. Please respect the terms of service of applications and games you use it with.
 
-- [Electron Documentation](https://www.electronjs.org/docs)
-- [Electron Builder](https://www.electron.build/)
-- [Node.js API](https://nodejs.org/api/)
+---
 
-## License
-
-MIT License - feel free to use this as a starting point for your own Electron applications!
+**Made with ❤️ using Electron**

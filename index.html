@@ -3,57 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Electron Hello World</title>
+    <title>AFK Companion</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🚀 Hello World!</h1>
-            <p class="subtitle">Welcome to your Electron application</p>
+            <h1>🎮 AFK Companion</h1>
+            <p>Keep your status active</p>
         </header>
         
-        <main>
-            <div class="info-card">
-                <h2>System Information</h2>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="label">Platform:</span>
-                        <span id="platform" class="value">Loading...</span>
+        <main class="content">
+            <div class="status-card">
+                <div class="status-indicator">
+                    <div id="status-dot" class="status-dot inactive"></div>
+                    <span id="status-text">Inactive</span>
+                </div>
+                
+                <div class="controls">
+                    <button id="toggle-btn" class="btn btn-primary">Start Anti-AFK</button>
+                </div>
+                
+                <div class="settings">
+                    <div class="setting-group">
+                        <label for="interval-select">Movement Interval:</label>
+                        <select id="interval-select" class="select-input">
+                            <option value="30">30 seconds</option>
+                            <option value="60" selected>1 minute</option>
+                            <option value="120">2 minutes</option>
+                            <option value="300">5 minutes</option>
+                        </select>
                     </div>
-                    <div class="info-item">
-                        <span class="label">Architecture:</span>
-                        <span id="arch" class="value">Loading...</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Node.js:</span>
-                        <span id="node-version" class="value">Loading...</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="label">Electron:</span>
-                        <span id="electron-version" class="value">Loading...</span>
+                    
+                    <div class="setting-group">
+                        <label for="action-select">Action Type:</label>
+                        <select id="action-select" class="select-input">
+                            <option value="mouse" selected>Mouse Movement</option>
+                            <option value="key">Key Press (F15)</option>
+                            <option value="both">Both</option>
+                        </select>
                     </div>
                 </div>
+                
+                <div class="info-section">
+                    <h3>📊 Statistics</h3>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Actions Performed:</span>
+                            <span id="action-count" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Running Time:</span>
+                            <span id="running-time" class="stat-value">00:00:00</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Next Action:</span>
+                            <span id="next-action" class="stat-value">--</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h3>ℹ️ How it works</h3>
+                    <ul class="info-list">
+                        <li><strong>Mouse Movement:</strong> Moves cursor by 1 pixel (invisible)</li>
+                        <li><strong>Key Press:</strong> Sends F15 key (doesn't interfere with games)</li>
+                        <li><strong>Safe:</strong> Uses minimal system resources</li>
+                        <li><strong>Minimize:</strong> App runs in system tray when minimized</li>
+                    </ul>
+                </div>
             </div>
-            
-            <div class="actions">
-                <button id="demo-button" class="btn btn-primary">
-                    Click me! 🎉
-                </button>
-                <button id="platform-button" class="btn btn-secondary">
-                    Show Platform Info
-                </button>
-            </div>
-            
-            <div id="message" class="message hidden"></div>
         </main>
         
         <footer>
-            <p>Built with ❤️ using Electron</p>
-            <p class="small">Cross-platform desktop app for Windows & Linux</p>
+            <p>🔒 Runs locally - No data sent anywhere</p>
         </footer>
     </div>
     
-    <script src="renderer.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

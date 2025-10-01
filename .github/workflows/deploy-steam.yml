@@ -1,0 +1,175 @@
+name: Deploy to Steam
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0
+  workflow_dispatch:  # Allows manual trigger
+    inputs:
+      force_version:
+        description: 'Override package.json version (optional)'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build Windows version
+      run: |
+        echo "🏗️ Building Windows executable..."
+        npm run pack:win
+
+    - name: Verify build
+      shell: bash
+      run: |
+        if [ -f "dist/word-spell-checker-win32-x64/word-spell-checker.exe" ]; then
+          echo "✅ Build successful: dist/word-spell-checker-win32-x64/word-spell-checker.exe"
+          ls -la "dist/word-spell-checker-win32-x64/word-spell-checker.exe"
+        else
+          echo "❌ Build failed: executable not found"
+          exit 1
+        fi
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-build
+        path: dist/word-spell-checker-win32-x64/
+        retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Set version
+      id: version
+      run: |
+        if [ -n "${{ inputs.force_version }}" ]; then
+          VERSION="${{ inputs.force_version }}"
+          echo "🔧 Using manual override version: $VERSION"
+        elif [ -n "${{ github.ref_name }}" ] && [[ "${{ github.ref_name }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          VERSION="${{ github.ref_name }}"
+          echo "🏷️ Using git tag version: $VERSION"
+        else
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          VERSION="v$PACKAGE_VERSION"
+          echo "📦 Using package.json version: v$PACKAGE_VERSION"
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "✅ Final version: $VERSION"
+
+    - name: Download Windows build
+      uses: actions/download-artifact@v4
+      with:
+        name: windows-build
+        path: dist/word-spell-checker-win32-x64/
+
+    - name: Verify downloaded build
+      run: |
+        echo "🔍 Verifying build..."
+        ls -la dist/
+        ls -la dist/word-spell-checker-win32-x64/
+        
+        if [ ! -f "dist/word-spell-checker-win32-x64/word-spell-checker.exe" ]; then
+          echo "❌ Windows executable not found!"
+          exit 1
+        fi
+        
+        echo "✅ Windows executable verified"
+
+    - name: Create Steam build directory
+      run: |
+        mkdir -p steam-build/windows
+        
+        cp -r dist/word-spell-checker-win32-x64/* steam-build/windows/
+        
+        echo "📦 Steam build directory created"
+
+    - name: Deploy to Steam
+      uses: game-ci/steam-deploy@v3
+      with:
+        username: ${{ secrets.STEAM_USERNAME }}
+        configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
+        appId: 2609100
+        buildDescription: Word Spell Checker ${{ steps.version.outputs.version }}
+        rootPath: steam-build
+        depot1Path: windows
+
+    - name: Upload build logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: steam-build-logs
+        path: steam-logs/
+        retention-days: 30
+
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Word Spell Checker ${{ steps.version.outputs.version }}
+        body: |
+          ## Word Spell Checker Release ${{ steps.version.outputs.version }}
+          
+          ### 🎮 Steam Deployment
+          - **App ID**: 2609100
+          - **Windows Depot**: 2609101
+          
+          ### 📦 Build Information
+          - **Windows Build**: `word-spell-checker.exe`
+          - **Architecture**: x64
+          - **Size**: ~173 MB
+          
+          ### 🚀 Features
+          - Educational spelling game for Windows
+          - Steam-compatible save system
+          - Automatic backup functionality
+          - Text-to-speech pronunciation
+          - Progressive difficulty levels
+          
+          This release has been automatically deployed to Steam.
+        draft: false
+        prerelease: false
+
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ ${{ job.status }} == 'success' ]; then
+          echo "✅ Steam deployment successful!"
+          echo "Version: ${{ steps.version.outputs.version }}"
+          echo "App ID 2609100 has been updated with:"
+          echo "- Windows depot 2609101: word-spell-checker.exe"
+          echo ""
+          echo "🎮 Windows build deployed from windows-latest"
+        else
+          echo "❌ Steam deployment failed!"
+          echo "Version: ${{ steps.version.outputs.version }}"
+          echo "Check the build logs for details."
+        fi

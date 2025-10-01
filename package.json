@@ -6,6 +6,8 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:linux": "electron-builder --linux",
     "dist": "electron-builder --publish=never"
   },
   "keywords": [
@@ -27,6 +29,39 @@
     "productName": "AFK Companion",
     "directories": {
       "output": "dist"
+    },
+    "icon": "assets/icon.png",
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "publisherName": "ArtyProf",
+      "signAndEditExecutable": false,
+      "sign": null,
+      "artifactName": "afk-companion.exe"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "tar.gz",
+          "arch": ["x64"]
+        },
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "category": "Utility",
+      "executableName": "afk-companion"
     },
     "files": [
       "**/*",

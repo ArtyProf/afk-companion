@@ -46,18 +46,39 @@ const createWindow = () => {
       }
     }
   });
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 };
 
 const createTray = () => {
-  // Create tray icon
-  const iconPath = path.join(__dirname, 'assets/tray-icon.png');
+  // Use the actual tray icon file from assets
   let trayIcon;
   
   try {
-    trayIcon = nativeImage.createFromPath(iconPath);
+    // First try to load the tray icon from assets
+    const trayIconPath = path.join(__dirname, 'assets', 'tray-icon.png');
+    trayIcon = nativeImage.createFromPath(trayIconPath);
+    
+    if (trayIcon.isEmpty()) {
+      // If tray icon doesn't exist, try the main icon
+      const mainIconPath = path.join(__dirname, 'assets', 'icon.png');
+      trayIcon = nativeImage.createFromPath(mainIconPath);
+      
+      // Resize it to appropriate tray size if it's too large
+      if (!trayIcon.isEmpty()) {
+        trayIcon = trayIcon.resize({ width: 16, height: 16 });
+      }
+    }
   } catch (error) {
-    // Fallback to a simple icon if file doesn't exist
+    console.log('Error loading tray icon from assets:', error);
+  }
+  
+  // Ultimate fallback: create a template icon
+  if (!trayIcon || trayIcon.isEmpty()) {
     trayIcon = nativeImage.createEmpty();
+    console.log('Using empty tray icon, system will provide default');
   }
   
   tray = new Tray(trayIcon);
@@ -67,7 +88,17 @@ const createTray = () => {
       label: 'Show AFK Companion',
       click: () => {
         mainWindow.show();
+        mainWindow.focus();
       }
+    },
+    {
+      label: 'Hide AFK Companion',
+      click: () => {
+        mainWindow.hide();
+      }
+    },
+    {
+      type: 'separator'
     },
     {
       label: 'Quit',
@@ -79,12 +110,30 @@ const createTray = () => {
   ]);
   
   tray.setContextMenu(contextMenu);
-  tray.setToolTip('AFK Companion');
+  tray.setToolTip('AFK Companion - Anti-idle utility');
   
   tray.on('double-click', () => {
-    mainWindow.show();
+    if (mainWindow.isVisible()) {
+      mainWindow.focus();
+    } else {
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+  
+  tray.on('click', () => {
+    if (process.platform !== 'darwin') { // Don't toggle on macOS (different behavior expected)
+      if (mainWindow.isVisible()) {
+        mainWindow.hide();
+      } else {
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    }
   });
 };
+
+
 
 // App event handlers
 app.whenReady().then(createWindow);

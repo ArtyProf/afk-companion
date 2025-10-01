@@ -2,7 +2,7 @@ name: Build, Release & Deploy
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
     paths: [ 'package.json' ]  # Trigger only when package.json changes
   workflow_dispatch:  # Allows manual trigger
     inputs:

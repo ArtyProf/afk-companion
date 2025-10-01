@@ -1,9 +1,9 @@
-name: Deploy to Steam
+name: Build, Release & Deploy
 
 on:
   push:
-    tags:
-      - 'v*.*.*'  # Triggers on version tags like v1.0.0
+    branches: [ master ]
+    paths: [ 'package.json' ]  # Trigger only when package.json changes
   workflow_dispatch:  # Allows manual trigger
     inputs:
       force_version:
@@ -12,8 +12,87 @@ on:
         default: ''
 
 jobs:
-  build:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      version-changed: ${{ steps.version.outputs.changed }}
+      should-deploy: ${{ steps.version.outputs.should-deploy }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2  # Get current and previous commit
+
+    - name: Check version change
+      id: version
+      run: |
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        echo "Current version: $CURRENT_VERSION"
+        
+        # Check if this is a manual trigger with force version
+        if [ -n "${{ inputs.force_version }}" ]; then
+          VERSION="${{ inputs.force_version }}"
+          echo "🔧 Using manual override version: $VERSION"
+          echo "version=v$VERSION" >> $GITHUB_OUTPUT
+          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "should-deploy=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+        
+        # For push events, check if version changed
+        if [ "${{ github.event_name }}" = "push" ]; then
+          # Get previous version from previous commit
+          git checkout HEAD~1 -- package.json 2>/dev/null || echo "No previous version found"
+          PREVIOUS_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "0.0.0")
+          git checkout HEAD -- package.json
+          
+          echo "Previous version: $PREVIOUS_VERSION"
+          
+          if [ "$CURRENT_VERSION" != "$PREVIOUS_VERSION" ]; then
+            echo "✅ Version changed from $PREVIOUS_VERSION to $CURRENT_VERSION"
+            echo "version=v$CURRENT_VERSION" >> $GITHUB_OUTPUT
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "should-deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Version unchanged: $CURRENT_VERSION"
+            echo "version=v$CURRENT_VERSION" >> $GITHUB_OUTPUT
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "should-deploy=false" >> $GITHUB_OUTPUT
+          fi
+        else
+          # For other events, always deploy
+          echo "version=v$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "changed=true" >> $GITHUB_OUTPUT
+          echo "should-deploy=true" >> $GITHUB_OUTPUT
+        fi
+
+  create-tag:
+    needs: check-version
+    runs-on: ubuntu-latest
+    if: needs.check-version.outputs.should-deploy == 'true'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create and push tag
+      run: |
+        VERSION="${{ needs.check-version.outputs.version }}"
+        echo "Creating tag: $VERSION"
+        
+        # Configure git
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Create and push tag
+        git tag -a "$VERSION" -m "Release $VERSION"
+        git push origin "$VERSION"
+        echo "✅ Tag $VERSION created and pushed"
+
+  build-windows:
+    needs: [check-version, create-tag]
     runs-on: windows-latest
+    if: needs.check-version.outputs.should-deploy == 'true'
     
     steps:
     - name: Checkout code
@@ -30,17 +109,20 @@ jobs:
 
     - name: Build Windows version
       run: |
-        echo "🏗️ Building Windows executable..."
-        npm run pack:win
+        echo "Building Windows executable..."
+        set CSC_IDENTITY_AUTO_DISCOVERY=false
+        npm run build:win
+      env:
+        CSC_IDENTITY_AUTO_DISCOVERY: false
 
     - name: Verify build
       shell: bash
       run: |
-        if [ -f "dist/word-spell-checker-win32-x64/word-spell-checker.exe" ]; then
-          echo "✅ Build successful: dist/word-spell-checker-win32-x64/word-spell-checker.exe"
-          ls -la "dist/word-spell-checker-win32-x64/word-spell-checker.exe"
+        if [ -f "dist/afk-companion.exe" ]; then
+          echo "Build successful: Windows executable created"
+          ls -la "dist/afk-companion.exe"
         else
-          echo "❌ Build failed: executable not found"
+          echo "Build failed: executable not found"
           exit 1
         fi
 
@@ -48,11 +130,62 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: windows-build
-        path: dist/word-spell-checker-win32-x64/
+        path: dist/
+        retention-days: 1
+
+  build-linux:
+    needs: [check-version, create-tag]
+    runs-on: ubuntu-latest
+    if: needs.check-version.outputs.should-deploy == 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build Linux version
+      run: |
+        echo "Building Linux executable..."
+        npm run build:linux
+
+    - name: Verify build
+      run: |
+        if [ -f dist/linux-unpacked/afk-companion ]; then
+          echo "Build successful: Linux executable created"
+          ls -la dist/linux-unpacked/
+        fi
+        if [ -f dist/*.tar.gz ]; then
+          echo "Build successful: Linux tar.gz created"
+          ls -la dist/*.tar.gz
+        fi
+        if [ -f dist/*.AppImage ] || [ -f dist/*.deb ]; then
+          echo "Build successful: Linux packages created"
+          ls -la dist/*.AppImage dist/*.deb 2>/dev/null || true
+        fi
+        
+        # Check if at least one Linux build artifact exists
+        if [ ! -f dist/linux-unpacked/afk-companion ] && [ ! -f dist/*.tar.gz ] && [ ! -f dist/*.AppImage ] && [ ! -f dist/*.deb ]; then
+          echo "Build failed: No Linux artifacts found"
+          exit 1
+        fi
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-build
+        path: dist/
         retention-days: 1
 
   deploy:
-    needs: build
+    needs: [check-version, build-windows, build-linux]
     runs-on: ubuntu-latest
     
     steps:
@@ -68,46 +201,61 @@ jobs:
     - name: Set version
       id: version
       run: |
-        if [ -n "${{ inputs.force_version }}" ]; then
-          VERSION="${{ inputs.force_version }}"
-          echo "🔧 Using manual override version: $VERSION"
-        elif [ -n "${{ github.ref_name }}" ] && [[ "${{ github.ref_name }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          VERSION="${{ github.ref_name }}"
-          echo "🏷️ Using git tag version: $VERSION"
-        else
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          VERSION="v$PACKAGE_VERSION"
-          echo "📦 Using package.json version: v$PACKAGE_VERSION"
-        fi
+        VERSION="${{ needs.check-version.outputs.version }}"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "✅ Final version: $VERSION"
+        echo "✅ Using version: $VERSION"
 
     - name: Download Windows build
       uses: actions/download-artifact@v4
       with:
         name: windows-build
-        path: dist/word-spell-checker-win32-x64/
+        path: dist-windows/
 
-    - name: Verify downloaded build
+    - name: Download Linux build
+      uses: actions/download-artifact@v4
+      with:
+        name: linux-build
+        path: dist-linux/
+
+    - name: Verify downloaded builds
       run: |
-        echo "🔍 Verifying build..."
-        ls -la dist/
-        ls -la dist/word-spell-checker-win32-x64/
+        echo "Verifying builds..."
+        echo "Windows build:"
+        ls -la dist-windows/
+        echo "Linux build:"
+        ls -la dist-linux/
         
-        if [ ! -f "dist/word-spell-checker-win32-x64/word-spell-checker.exe" ]; then
-          echo "❌ Windows executable not found!"
+        if [ ! -f dist-windows/afk-companion.exe ]; then
+          echo "Windows executable not found!"
           exit 1
         fi
         
-        echo "✅ Windows executable verified"
+        if [ ! -f dist-linux/linux-unpacked/afk-companion ] && [ ! -f dist-linux/*.tar.gz ] && [ ! -f dist-linux/*.AppImage ] && [ ! -f dist-linux/*.deb ]; then
+          echo "Linux executable/packages not found!"
+          exit 1
+        fi
+        
+        echo "All builds verified"
 
     - name: Create Steam build directory
       run: |
         mkdir -p steam-build/windows
+        mkdir -p steam-build/linux
         
-        cp -r dist/word-spell-checker-win32-x64/* steam-build/windows/
+        # Copy Windows executable to Steam build
+        cp dist-windows/afk-companion.exe steam-build/windows/
         
-        echo "📦 Steam build directory created"
+        # Copy Linux executable and packages to Steam build
+        if [ -f dist-linux/linux-unpacked/afk-companion ]; then
+          cp -r dist-linux/linux-unpacked/* steam-build/linux/
+        fi
+        cp dist-linux/*.tar.gz steam-build/linux/ 2>/dev/null || true
+        cp dist-linux/*.AppImage steam-build/linux/ 2>/dev/null || true
+        cp dist-linux/*.deb steam-build/linux/ 2>/dev/null || true
+        
+        echo "Steam build directory created"
+        ls -la steam-build/windows/
+        ls -la steam-build/linux/
 
     - name: Deploy to Steam
       uses: game-ci/steam-deploy@v3
@@ -115,9 +263,10 @@ jobs:
         username: ${{ secrets.STEAM_USERNAME }}
         configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
         appId: 2609100
-        buildDescription: Word Spell Checker ${{ steps.version.outputs.version }}
+        buildDescription: AFK Companion ${{ steps.version.outputs.version }}
         rootPath: steam-build
         depot1Path: windows
+        depot2Path: linux
 
     - name: Upload build logs
       if: always()
@@ -127,49 +276,113 @@ jobs:
         path: steam-logs/
         retention-days: 30
 
+    - name: Prepare release assets
+      run: |
+        VERSION="${{ needs.check-version.outputs.version }}"
+        echo "Preparing release assets for $VERSION"
+        
+        # Create release directory
+        mkdir -p release-assets
+        
+        # Copy Windows executable
+        if [ -f "dist-windows/afk-companion.exe" ]; then
+          cp "dist-windows/afk-companion.exe" "release-assets/afk-companion-${VERSION}-windows.exe"
+          echo "✅ Windows executable prepared"
+        fi
+        
+        # Copy Linux executables and packages
+        if [ -f "dist-linux/linux-unpacked/afk-companion" ]; then
+          cp "dist-linux/linux-unpacked/afk-companion" "release-assets/afk-companion-${VERSION}-linux"
+          chmod +x "release-assets/afk-companion-${VERSION}-linux"
+          echo "✅ Linux executable prepared"
+        fi
+        
+        if [ -f dist-linux/*.tar.gz ]; then
+          cp dist-linux/*.tar.gz "release-assets/"
+          echo "✅ Linux tar.gz prepared"
+        fi
+        
+        if [ -f dist-linux/*.AppImage ]; then
+          cp dist-linux/*.AppImage "release-assets/"
+          echo "✅ Linux AppImage prepared"
+        fi
+        
+        if [ -f dist-linux/*.deb ]; then
+          cp dist-linux/*.deb "release-assets/"
+          echo "✅ Linux DEB prepared"
+        fi
+        
+        ls -la release-assets/
+
     - name: Create GitHub Release
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: actions/create-release@v1
+      uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref_name }}
-        release_name: Word Spell Checker ${{ steps.version.outputs.version }}
+        tag_name: ${{ needs.check-version.outputs.version }}
+        name: 🎮 AFK Companion ${{ needs.check-version.outputs.version }}
         body: |
-          ## Word Spell Checker Release ${{ steps.version.outputs.version }}
+          ## 🎮 AFK Companion Release ${{ needs.check-version.outputs.version }}
           
-          ### 🎮 Steam Deployment
-          - **App ID**: 2609100
-          - **Windows Depot**: 2609101
+          ### 📥 Downloads
+          - **🪟 Windows**: `afk-companion-${{ needs.check-version.outputs.version }}-windows.exe` - Portable executable (~68MB)
+          - **🐧 Linux**: `afk-companion-${{ needs.check-version.outputs.version }}-linux` - Binary executable
+          - **📦 Linux Archive**: `*.tar.gz` - Compressed package (~97MB)
+          - **📱 Linux Packages**: `*.AppImage` and `*.deb` (when available)
           
-          ### 📦 Build Information
-          - **Windows Build**: `word-spell-checker.exe`
-          - **Architecture**: x64
-          - **Size**: ~173 MB
+          ### 🚀 Steam Deployment
+          - **🆔 App ID**: 2609100
+          - **🪟 Windows Depot**: 2609101
+          - **🐧 Linux Depot**: 2609102
           
-          ### 🚀 Features
-          - Educational spelling game for Windows
-          - Steam-compatible save system
-          - Automatic backup functionality
-          - Text-to-speech pronunciation
-          - Progressive difficulty levels
+          ### ✨ Features
+          - 🎯 Anti-idle utility for gaming and work
+          - 🖱️ Cross-platform mouse and keyboard simulation
+          - 🛡️ System tray operation
+          - ⏱️ Customizable intervals and actions
+          - 🏠 Local operation with no network requirements
+          - 🔧 Safe, non-intrusive actions
           
-          This release has been automatically deployed to Steam.
+          ### 📋 How to Use
+          1. Download the appropriate version for your OS
+          2. Run the executable (no installation required)
+          3. Configure your preferred settings
+          4. Click "Start" to prevent AFK/idle status
+          
+          ---
+          **Made with Electron** ⚛️ | **Auto-deployed via GitHub Actions** 🤖
+        files: release-assets/*
         draft: false
         prerelease: false
+        generate_release_notes: true
 
     - name: Notify deployment status
       if: always()
       run: |
         if [ ${{ job.status }} == 'success' ]; then
-          echo "✅ Steam deployment successful!"
-          echo "Version: ${{ steps.version.outputs.version }}"
-          echo "App ID 2609100 has been updated with:"
-          echo "- Windows depot 2609101: word-spell-checker.exe"
+          echo "🎉 Deployment successful!"
+          echo "📦 Version: ${{ needs.check-version.outputs.version }}"
+          echo "🏷️ GitHub Release: Created with executables attached"
+          echo "🚀 Steam App ID 2609100 updated:"
+          echo "  🪟 Windows depot 2609101: afk-companion.exe"
+          echo "  🐧 Linux depot 2609102: Linux packages"
           echo ""
-          echo "🎮 Windows build deployed from windows-latest"
+          echo "✅ Cross-platform build deployed and released"
         else
-          echo "❌ Steam deployment failed!"
-          echo "Version: ${{ steps.version.outputs.version }}"
-          echo "Check the build logs for details."
+          echo "❌ Deployment failed!"
+          echo "📦 Version: ${{ needs.check-version.outputs.version }}"
+          echo "🔍 Check the build logs for details."
         fi
+
+  skip-deployment:
+    needs: check-version
+    runs-on: ubuntu-latest
+    if: needs.check-version.outputs.should-deploy == 'false'
+    steps:
+    - name: Skip deployment notification
+      run: |
+        echo "⏭️ Skipping deployment - version unchanged"
+        echo "📦 Current version: ${{ needs.check-version.outputs.version }}"
+        echo "💡 To trigger deployment:"
+        echo "  1. Update version in package.json"
+        echo "  2. Or manually trigger with force_version input"

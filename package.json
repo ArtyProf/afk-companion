@@ -1,6 +1,6 @@
 {
   "name": "afk-companion",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "AFK Companion - Anti-idle utility to prevent being marked as away",
   "main": "main.js",
   "scripts": {
@@ -48,14 +48,6 @@
       "target": [
         {
           "target": "tar.gz",
-          "arch": ["x64"]
-        },
-        {
-          "target": "AppImage",
-          "arch": ["x64"]
-        },
-        {
-          "target": "deb",
           "arch": ["x64"]
         }
       ],

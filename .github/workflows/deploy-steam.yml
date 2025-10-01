@@ -166,13 +166,8 @@ jobs:
           echo "Build successful: Linux tar.gz created"
           ls -la dist/*.tar.gz
         fi
-        if [ -f dist/*.AppImage ] || [ -f dist/*.deb ]; then
-          echo "Build successful: Linux packages created"
-          ls -la dist/*.AppImage dist/*.deb 2>/dev/null || true
-        fi
-        
         # Check if at least one Linux build artifact exists
-        if [ ! -f dist/linux-unpacked/afk-companion ] && [ ! -f dist/*.tar.gz ] && [ ! -f dist/*.AppImage ] && [ ! -f dist/*.deb ]; then
+        if [ ! -f dist/linux-unpacked/afk-companion ] && [ ! -f dist/*.tar.gz ]; then
           echo "Build failed: No Linux artifacts found"
           exit 1
         fi
@@ -230,7 +225,7 @@ jobs:
           exit 1
         fi
         
-        if [ ! -f dist-linux/linux-unpacked/afk-companion ] && [ ! -f dist-linux/*.tar.gz ] && [ ! -f dist-linux/*.AppImage ] && [ ! -f dist-linux/*.deb ]; then
+        if [ ! -f dist-linux/linux-unpacked/afk-companion ] && [ ! -f dist-linux/*.tar.gz ]; then
           echo "Linux executable/packages not found!"
           exit 1
         fi
@@ -245,13 +240,10 @@ jobs:
         # Copy Windows executable to Steam build
         cp dist-windows/afk-companion.exe steam-build/windows/
         
-        # Copy Linux executable and packages to Steam build
+        # Copy Linux executable to Steam build (unpacked only, no tar.gz)
         if [ -f dist-linux/linux-unpacked/afk-companion ]; then
           cp -r dist-linux/linux-unpacked/* steam-build/linux/
         fi
-        cp dist-linux/*.tar.gz steam-build/linux/ 2>/dev/null || true
-        cp dist-linux/*.AppImage steam-build/linux/ 2>/dev/null || true
-        cp dist-linux/*.deb steam-build/linux/ 2>/dev/null || true
         
         echo "Steam build directory created"
         ls -la steam-build/windows/
@@ -302,15 +294,7 @@ jobs:
           echo "✅ Linux tar.gz prepared"
         fi
         
-        if [ -f dist-linux/*.AppImage ]; then
-          cp dist-linux/*.AppImage "release-assets/"
-          echo "✅ Linux AppImage prepared"
-        fi
-        
-        if [ -f dist-linux/*.deb ]; then
-          cp dist-linux/*.deb "release-assets/"
-          echo "✅ Linux DEB prepared"
-        fi
+
         
         ls -la release-assets/
 
@@ -328,7 +312,6 @@ jobs:
           - **🪟 Windows**: `afk-companion-${{ needs.check-version.outputs.version }}-windows.exe` - Portable executable (~68MB)
           - **🐧 Linux**: `afk-companion-${{ needs.check-version.outputs.version }}-linux` - Binary executable
           - **📦 Linux Archive**: `*.tar.gz` - Compressed package (~97MB)
-          - **📱 Linux Packages**: `*.AppImage` and `*.deb` (when available)
           
           ### 🚀 Steam Deployment
           - **🆔 App ID**: 2609100

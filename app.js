@@ -5,12 +5,14 @@ class AFKCompanion {
     constructor() {
         this.isActive = false;
         this.interval = 60; // seconds
-        this.actionType = 'mouse';
+        this.pixelDistance = 5; // pixels for mouse movement
         this.actionCount = 0;
         this.startTime = null;
         this.intervalId = null;
         this.countdownId = null;
         this.nextActionTime = 0;
+        this.heartbeatInterval = null;
+        this.lastBackgroundCheck = Date.now();
         
         this.init();
     }
@@ -19,6 +21,7 @@ class AFKCompanion {
         this.bindEvents();
         this.updateUI();
         this.startCountdown();
+        this.startBackgroundMonitoring();
     }
     
     bindEvents() {
@@ -35,9 +38,9 @@ class AFKCompanion {
             }
         });
         
-        const actionSelect = document.getElementById('action-select');
-        actionSelect.addEventListener('change', (e) => {
-            this.actionType = e.target.value;
+        const pixelDistanceInput = document.getElementById('pixel-distance');
+        pixelDistanceInput.addEventListener('change', (e) => {
+            this.pixelDistance = parseInt(e.target.value);
         });
         
         // Keyboard shortcuts
@@ -90,25 +93,26 @@ class AFKCompanion {
             this.intervalId = null;
         }
         
+        // Don't stop background monitoring when stopping AFK - keep it running for tray operation
+        
         this.updateUI();
         this.resetCountdown();
         console.log('AFK Companion stopped');
     }
     
-    performAction() {
+    async performAction() {
         try {
-            switch (this.actionType) {
-                case 'mouse':
-                    this.performMouseAction();
-                    break;
-                case 'key':
-                    this.performKeyAction();
-                    break;
-                case 'both':
-                    this.performMouseAction();
-                    setTimeout(() => this.performKeyAction(), 100);
-                    break;
+            // Ensure background processes are still active before performing action
+            if (typeof require !== 'undefined') {
+                try {
+                    const { ipcRenderer } = require('electron');
+                    await ipcRenderer.invoke('ensure-background-active');
+                } catch (error) {
+                    console.log('Could not verify background processes:', error);
+                }
             }
+            
+            await this.performMouseAction();
             
             this.actionCount++;
             this.updateUI();
@@ -120,38 +124,26 @@ class AFKCompanion {
         }
     }
     
-    performMouseAction() {
+    async performMouseAction() {
         // Use Electron's built-in capabilities to simulate activity
         if (typeof require !== 'undefined') {
             try {
                 const { ipcRenderer } = require('electron');
-                ipcRenderer.invoke('simulate-mouse-movement');
+                console.log(`Starting mouse movement with ${this.pixelDistance}px distance`);
+                const result = await ipcRenderer.invoke('simulate-mouse-movement', this.pixelDistance);
+                if (result) {
+                    this.logAction(`Smooth mouse movement completed (${this.pixelDistance}px)`);
+                } else {
+                    console.log('Mouse movement failed, using fallback');
+                    this.fallbackMouseAction();
+                }
             } catch (error) {
-                console.log('Using fallback mouse simulation');
+                console.log('Error with mouse simulation, using fallback:', error);
                 this.fallbackMouseAction();
             }
         } else {
             this.fallbackMouseAction();
         }
-        
-        this.logAction('Mouse movement performed');
-    }
-    
-    performKeyAction() {
-        // Use Electron's built-in capabilities to simulate key press
-        if (typeof require !== 'undefined') {
-            try {
-                const { ipcRenderer } = require('electron');
-                ipcRenderer.invoke('simulate-key-press');
-            } catch (error) {
-                console.log('Using fallback key simulation');
-                this.fallbackKeyAction();
-            }
-        } else {
-            this.fallbackKeyAction();
-        }
-        
-        this.logAction('Key press performed');
     }
     
     fallbackMouseAction() {
@@ -163,21 +155,12 @@ class AFKCompanion {
             } catch (error) {
                 // Ultimate fallback: trigger a small DOM event
                 const event = new MouseEvent('mousemove', {
-                    clientX: Math.random() * 2,
-                    clientY: Math.random() * 2
+                    clientX: Math.random() * this.pixelDistance,
+                    clientY: Math.random() * this.pixelDistance
                 });
                 document.dispatchEvent(event);
             }
         }
-    }
-    
-    fallbackKeyAction() {
-        // Fallback: Create a programmatic keyboard event
-        const event = new KeyboardEvent('keydown', {
-            key: 'F24', // F24 is very rarely used
-            code: 'F24'
-        });
-        document.dispatchEvent(event);
     }
     
     logAction(message) {
@@ -243,6 +226,71 @@ class AFKCompanion {
             `${minutes}:${seconds.toString().padStart(2, '0')}` : '--';
         
         document.getElementById('next-action').textContent = timeString;
+    }
+    
+    startBackgroundMonitoring() {
+        console.log('Starting background monitoring system');
+        
+        // Start heartbeat to keep renderer active
+        if (this.heartbeatInterval === null) {
+            this.heartbeatInterval = setInterval(async () => {
+                try {
+                    if (typeof require !== 'undefined') {
+                        const { ipcRenderer } = require('electron');
+                        await ipcRenderer.invoke('renderer-heartbeat');
+                        
+                        // Check if background processes are still active
+                        const now = Date.now();
+                        if (now - this.lastBackgroundCheck > 60000) { // Check every minute
+                            const status = await ipcRenderer.invoke('ensure-background-active');
+                            console.log('Background status check:', status);
+                            this.lastBackgroundCheck = now;
+                        }
+                    }
+                } catch (error) {
+                    console.log('Heartbeat error:', error);
+                }
+            }, 15000); // Every 15 seconds
+        }
+        
+        // Listen for background keep-alive messages from main process
+        if (typeof require !== 'undefined') {
+            try {
+                const { ipcRenderer } = require('electron');
+                ipcRenderer.on('background-keepalive', (event, timestamp) => {
+                    console.log('Received background keep-alive signal:', timestamp);
+                    
+                    // If AFK is active but seems stuck, restart it
+                    if (this.isActive && this.intervalId) {
+                        const timeSinceLastAction = Date.now() - (this.startTime + (this.actionCount * this.interval * 1000));
+                        if (timeSinceLastAction > (this.interval * 2000)) { // If twice the interval has passed
+                            console.log('Detected stuck AFK - restarting');
+                            this.restart();
+                        }
+                    }
+                });
+            } catch (error) {
+                console.log('Could not set up background listener:', error);
+            }
+        }
+    }
+    
+    stopBackgroundMonitoring() {
+        if (this.heartbeatInterval) {
+            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = null;
+        }
+    }
+    
+    restart() {
+        console.log('Restarting AFK Companion');
+        const wasActive = this.isActive;
+        this.stop();
+        if (wasActive) {
+            setTimeout(() => {
+                this.start();
+            }, 1000);
+        }
     }
 }
 

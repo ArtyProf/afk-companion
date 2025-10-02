@@ -28,6 +28,7 @@
                     <div class="setting-group">
                         <label for="interval-select">Movement Interval:</label>
                         <select id="interval-select" class="select-input">
+                            <option value="5">5 seconds</option>
                             <option value="30">30 seconds</option>
                             <option value="60" selected>1 minute</option>
                             <option value="120">2 minutes</option>
@@ -39,9 +40,13 @@
                         <label for="action-select">Action Type:</label>
                         <select id="action-select" class="select-input">
                             <option value="mouse" selected>Mouse Movement</option>
-                            <option value="key">Key Press (F15)</option>
-                            <option value="both">Both</option>
                         </select>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label for="pixel-distance">Mouse Distance:</label>
+                        <input type="number" id="pixel-distance" class="number-input" min="1" max="50" value="5" />
+                        <span class="unit-label">pixels</span>
                     </div>
                 </div>
                 
@@ -66,10 +71,10 @@
                 <div class="info-section">
                     <h3>How it works</h3>
                     <ul class="info-list">
-                        <li><strong>Mouse Movement:</strong> Moves cursor by 1 pixel (invisible)</li>
-                        <li><strong>Key Press:</strong> Sends F15 key (doesn't interfere with games)</li>
+                        <li><strong>Mouse Movement:</strong> Moves cursor by configurable pixels (invisible)</li>
                         <li><strong>Safe:</strong> Uses minimal system resources</li>
                         <li><strong>System Tray:</strong> Minimizes to tray for background operation</li>
+                        <li><strong>Local Only:</strong> No data sent anywhere</li>
                     </ul>
                 </div>
             </div>

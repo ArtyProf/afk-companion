@@ -23,7 +23,6 @@
     "electron": "^27.0.0",
     "electron-builder": "^24.6.4"
   },
-  "dependencies": {},
   "build": {
     "appId": "com.artyprof.afk-companion",
     "productName": "AFK Companion",
@@ -35,7 +34,9 @@
       "target": [
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icon.png",
@@ -48,7 +49,9 @@
       "target": [
         {
           "target": "tar.gz",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "assets/icon.png",
@@ -69,5 +72,8 @@
       "!**/{appveyor.yml,.travis.yml,circle.yml}",
       "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
     ]
+  },
+  "dependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.6"
   }
 }

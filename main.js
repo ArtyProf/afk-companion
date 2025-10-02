@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
+const xdotoolFinder = require('./utils/xdotool-finder');
 
 let mainWindow;
 let tray;
@@ -137,7 +138,19 @@ const createTray = () => {
 
 
 // App event handlers
-app.whenReady().then(createWindow);
+app.whenReady().then(async () => {
+  // Initialize xdotool finder on Linux at startup for better performance
+  if (process.platform === 'linux') {
+    try {
+      await xdotoolFinder.findXdotool();
+      console.log('xdotool path detected:', xdotoolFinder.getXdotoolPath());
+    } catch (error) {
+      console.error('Failed to detect xdotool at startup:', error.message);
+    }
+  }
+  
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   // Don't quit the app when window is closed - keep running in tray
@@ -194,11 +207,14 @@ ipcMain.handle('simulate-mouse-movement', async (event, pixelDistance = 5) => {
       const steps = 12;
       const stepDelay = 8;
       
+      // Use cached xdotool path from startup detection
+      const xdotoolPath = xdotoolFinder.getXdotoolPath();
+      
       // Toggle ScrollLock twice (on then off) to prevent sleep
       try {
-        await execAsync('xdotool key Scroll_Lock');
+        await execAsync(`${xdotoolPath} key Scroll_Lock`);
         await new Promise(resolve => setTimeout(resolve, 10));
-        await execAsync('xdotool key Scroll_Lock');
+        await execAsync(`${xdotoolPath} key Scroll_Lock`);
         console.log('ScrollLock toggle completed');
       } catch (error) {
         console.log('ScrollLock toggle error:', error.message);
@@ -209,7 +225,7 @@ ipcMain.handle('simulate-mouse-movement', async (event, pixelDistance = 5) => {
         const currentY = Math.round(cursor.y + (targetY - cursor.y) * (i / steps));
         
         try {
-          await execAsync(`xdotool mousemove ${currentX} ${currentY}`);
+          await execAsync(`${xdotoolPath} mousemove ${currentX} ${currentY}`);
           if (i < steps) {
             await new Promise(resolve => setTimeout(resolve, stepDelay));
           }
@@ -227,7 +243,7 @@ ipcMain.handle('simulate-mouse-movement', async (event, pixelDistance = 5) => {
         const currentY = Math.round(targetY + (cursor.y - targetY) * (i / steps));
         
         try {
-          await execAsync(`xdotool mousemove ${currentX} ${currentY}`);
+          await execAsync(`${xdotoolPath} mousemove ${currentX} ${currentY}`);
           if (i < steps) {
             await new Promise(resolve => setTimeout(resolve, stepDelay));
           }

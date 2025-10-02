@@ -282,13 +282,7 @@ jobs:
           echo "✅ Windows executable prepared"
         fi
         
-        # Copy Linux executables and packages
-        if [ -f "dist-linux/linux-unpacked/afk-companion" ]; then
-          cp "dist-linux/linux-unpacked/afk-companion" "release-assets/afk-companion-${VERSION}-linux"
-          chmod +x "release-assets/afk-companion-${VERSION}-linux"
-          echo "✅ Linux executable prepared"
-        fi
-        
+        # Copy Linux tar.gz
         if [ -f dist-linux/*.tar.gz ]; then
           cp dist-linux/*.tar.gz "release-assets/"
           echo "✅ Linux tar.gz prepared"
@@ -309,9 +303,8 @@ jobs:
           ## 🎮 AFK Companion Release ${{ needs.check-version.outputs.version }}
           
           ### 📥 Downloads
-          - **🪟 Windows**: `afk-companion-${{ needs.check-version.outputs.version }}-windows.exe` - Portable executable (~68MB)
-          - **🐧 Linux**: `afk-companion-${{ needs.check-version.outputs.version }}-linux` - Binary executable
-          - **📦 Linux Archive**: `*.tar.gz` - Compressed package (~97MB)
+          - **🪟 Windows**: `afk-companion-${{ needs.check-version.outputs.version }}-windows.exe` - Portable executable
+          - **📦 Linux Archive**: `*.tar.gz` - Compressed package
           
           ### 🚀 Steam Deployment
           - **🆔 App ID**: 2609100

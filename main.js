@@ -160,7 +160,7 @@ ipcMain.handle('get-platform', () => {
 
 
 
-// Handle smooth mouse movement simulation with configurable distance
+// Handle smooth mouse movement simulation with configurable distance and ScrollLock toggle
 ipcMain.handle('simulate-mouse-movement', async (event, pixelDistance = 5) => {
   try {
     const { screen } = require('electron');
@@ -177,22 +177,32 @@ ipcMain.handle('simulate-mouse-movement', async (event, pixelDistance = 5) => {
     const targetY = cursor.y + Math.sin(angle) * pixelDistance;
     
     if (process.platform === 'win32') {
-      // Windows: Use PowerShell function for smooth movement
+      // Windows: Use PowerShell function for smooth movement + ScrollLock toggle
       const startX = Math.round(cursor.x);
       const startY = Math.round(cursor.y);
       const endX = Math.round(targetX);
       const endY = Math.round(targetY);
       
-      const powershellScript = `Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; function Move-MouseSmoothly { param([int]$StartX, [int]$StartY, [int]$TargetX, [int]$TargetY, [int]$Steps = 10) for ($i = 1; $i -le $Steps; $i++) { $X = $StartX + (($TargetX - $StartX) * $i / $Steps); $Y = $StartY + (($TargetY - $StartY) * $i / $Steps); [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point([math]::Round($X), [math]::Round($Y)); Start-Sleep -Milliseconds 10 } }; Move-MouseSmoothly -StartX ${startX} -StartY ${startY} -TargetX ${endX} -TargetY ${endY}; Start-Sleep -Milliseconds 50; Move-MouseSmoothly -StartX ${endX} -StartY ${endY} -TargetX ${startX} -TargetY ${startY}`;
+      const powershellScript = `Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; function Move-MouseSmoothly { param([int]$StartX, [int]$StartY, [int]$TargetX, [int]$TargetY, [int]$Steps = 10) for ($i = 1; $i -le $Steps; $i++) { $X = $StartX + (($TargetX - $StartX) * $i / $Steps); $Y = $StartY + (($TargetY - $StartY) * $i / $Steps); [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point([math]::Round($X), [math]::Round($Y)); Start-Sleep -Milliseconds 10 } }; [System.Windows.Forms.SendKeys]::SendWait('{SCROLLLOCK}'); Start-Sleep -Milliseconds 10; [System.Windows.Forms.SendKeys]::SendWait('{SCROLLLOCK}'); Move-MouseSmoothly -StartX ${startX} -StartY ${startY} -TargetX ${endX} -TargetY ${endY}; Start-Sleep -Milliseconds 50; Move-MouseSmoothly -StartX ${endX} -StartY ${endY} -TargetX ${startX} -TargetY ${startY}`;
       
-      console.log('Executing PowerShell mouse movement...');
+      console.log('Executing PowerShell mouse movement with ScrollLock toggle...');
       const result = await execAsync(`powershell.exe -Command "${powershellScript}"`);
-      console.log('PowerShell execution completed successfully');
+      console.log('PowerShell execution with ScrollLock completed successfully');
       
     } else if (process.platform === 'linux') {
-      // Linux: Use xdotool with smooth movement simulation
+      // Linux: Use xdotool with smooth movement simulation + ScrollLock toggle
       const steps = 12;
       const stepDelay = 8;
+      
+      // Toggle ScrollLock twice (on then off) to prevent sleep
+      try {
+        await execAsync('xdotool key Scroll_Lock');
+        await new Promise(resolve => setTimeout(resolve, 10));
+        await execAsync('xdotool key Scroll_Lock');
+        console.log('ScrollLock toggle completed');
+      } catch (error) {
+        console.log('ScrollLock toggle error:', error.message);
+      }
       
       for (let i = 1; i <= steps; i++) {
         const currentX = Math.round(cursor.x + (targetX - cursor.x) * (i / steps));

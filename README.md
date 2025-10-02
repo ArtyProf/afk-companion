@@ -42,15 +42,24 @@
 - ⚡ **Configurable Distance**: User-defined pixel distance (1-50px) for movement radius
 
 ### 🐧 Linux  
-- 🖱️ **Smooth Mouse Movement**: Uses `xdotool` with step-by-step interpolation
-- 🔐 **ScrollLock Toggle**: Uses `xdotool` to send ScrollLock key presses for system wake
+- 🖱️ **Smart Tool Detection**: Automatically uses `ydotool` (Wayland/Steam Deck), `xdotool` (X11), or `wlrctl`
+- 🎮 **Steam Deck Compatible**: Native support for Steam Deck's Wayland environment
+- 🔐 **ScrollLock Toggle**: Adaptive key press method based on available tools
 - 🎯 **Natural Patterns**: Same circular movement patterns as Windows
-- ⚡ **Cross-Platform Consistency**: Identical behavior across platforms
+- ⚡ **Multi-Method Fallback**: Tries multiple approaches for maximum compatibility
 
-> **Note**: On Linux, you may need to install `xdotool`:
+> **Note**: For Linux compatibility, the app automatically detects and uses available tools:
+> - **Steam Deck/Wayland**: Uses `ydotool` (pre-installed on Steam Deck)
+> - **Traditional Linux/X11**: Uses `xdotool`
+> - **Alternative Wayland**: Uses `wlrctl` if available
+> 
+> If needed, install tools manually:
 > ```bash
-> sudo apt install xdotool  # Ubuntu/Debian
-> sudo dnf install xdotool  # Fedora
+> # For X11 systems (Ubuntu/Debian)
+> sudo apt install xdotool
+> 
+> # For Wayland systems
+> sudo apt install ydotool  # or: sudo pacman -S ydotool
 > ```
 
 ### 🏗️ **Architecture**
@@ -142,6 +151,12 @@ Steam deployment includes both Windows portable executable and Linux packages. �
 - The app now uses ScrollLock toggle + mouse movement for maximum effectiveness
 - ScrollLock presses prevent system sleep without interfering with applications
 - If issues persist, try reducing the interval to 30 seconds or 1 minute
+
+**🎮 Not working on Steam Deck/Linux:**
+- App automatically detects Steam Deck and uses `ydotool` for Wayland compatibility
+- On other Linux systems, ensure either `xdotool` or `ydotool` is installed
+- Check console logs for which method is being used
+- For Wayland systems: `sudo apt install ydotool` or `sudo pacman -S ydotool`
 
 **🚫 App stops working after laptop sleep/hibernate:**
 - This has been resolved! The app now stays active in system tray

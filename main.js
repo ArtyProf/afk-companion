@@ -1,10 +1,8 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, powerSaveBlocker } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
 
 let mainWindow;
 let tray;
-let powerSaveBlockerId = null;
-let backgroundKeepAliveInterval = null;
 
 const createWindow = () => {
   // Create the browser window
@@ -14,7 +12,8 @@ const createWindow = () => {
     resizable: false,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false
+      contextIsolation: false,
+      backgroundThrottling: false
     },
     icon: path.join(__dirname, 'assets/icon.png'),
     show: false,
@@ -135,71 +134,15 @@ const createTray = () => {
   });
 };
 
-// Background process management
-const startBackgroundKeepAlive = () => {
-  console.log('Starting background keep-alive system');
-  
-  // Enable power save blocker to prevent system sleep
-  if (powerSaveBlockerId === null) {
-    try {
-      powerSaveBlockerId = powerSaveBlocker.start('prevent-app-suspension');
-      console.log('Power save blocker started:', powerSaveBlockerId);
-    } catch (error) {
-      console.log('Could not start power save blocker:', error);
-    }
-  }
-  
-  // Set up background keep-alive interval
-  if (backgroundKeepAliveInterval === null) {
-    backgroundKeepAliveInterval = setInterval(() => {
-      // Keep the main process active by performing a lightweight operation
-      const now = Date.now();
-      console.log('Background keep-alive tick:', now);
-      
-      // Also notify renderer if window exists
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        try {
-          mainWindow.webContents.send('background-keepalive', now);
-        } catch (error) {
-          console.log('Could not send keep-alive to renderer:', error);
-        }
-      }
-    }, 30000); // Every 30 seconds
-  }
-};
 
-const stopBackgroundKeepAlive = () => {
-  console.log('Stopping background keep-alive system');
-  
-  // Stop power save blocker
-  if (powerSaveBlockerId !== null) {
-    try {
-      powerSaveBlocker.stop(powerSaveBlockerId);
-      console.log('Power save blocker stopped');
-    } catch (error) {
-      console.log('Error stopping power save blocker:', error);
-    }
-    powerSaveBlockerId = null;
-  }
-  
-  // Clear background interval
-  if (backgroundKeepAliveInterval !== null) {
-    clearInterval(backgroundKeepAliveInterval);
-    backgroundKeepAliveInterval = null;
-  }
-};
 
 // App event handlers
-app.whenReady().then(() => {
-  createWindow();
-  startBackgroundKeepAlive(); // Start background management immediately
-});
+app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    stopBackgroundKeepAlive();
-    app.quit();
-  }
+  // Don't quit the app when window is closed - keep running in tray
+  // Only quit when explicitly requested through tray menu or app.isQuiting flag
+  console.log('All windows closed - keeping app running in tray');
 });
 
 app.on('activate', () => {
@@ -208,66 +151,14 @@ app.on('activate', () => {
   }
 });
 
-app.on('before-quit', () => {
-  console.log('App is about to quit - cleaning up');
-  stopBackgroundKeepAlive();
-});
 
-// Handle system events that might affect background processing
-app.on('ready', () => {
-  // Listen for system power events
-  try {
-    const { powerMonitor } = require('electron');
-    
-    powerMonitor.on('suspend', () => {
-      console.log('System suspending - maintaining background process');
-    });
-    
-    powerMonitor.on('resume', () => {
-      console.log('System resumed - ensuring background process is active');
-      // Restart background keep-alive if needed
-      if (backgroundKeepAliveInterval === null) {
-        startBackgroundKeepAlive();
-      }
-    });
-    
-    powerMonitor.on('lock-screen', () => {
-      console.log('Screen locked - maintaining background operation');
-    });
-    
-    powerMonitor.on('unlock-screen', () => {
-      console.log('Screen unlocked - background operation continuing');
-    });
-    
-  } catch (error) {
-    console.log('PowerMonitor not available:', error.message);
-  }
-});
 
 // Handle IPC messages from renderer
 ipcMain.handle('get-platform', () => {
   return process.platform;
 });
 
-// Handle background keep-alive requests
-ipcMain.handle('ensure-background-active', () => {
-  console.log('Renderer requested background keep-alive check');
-  if (backgroundKeepAliveInterval === null) {
-    console.log('Background keep-alive was inactive - restarting');
-    startBackgroundKeepAlive();
-  }
-  return {
-    keepAliveActive: backgroundKeepAliveInterval !== null,
-    powerBlockerActive: powerSaveBlockerId !== null
-  };
-});
 
-// Handle renderer heartbeat
-ipcMain.handle('renderer-heartbeat', () => {
-  const timestamp = Date.now();
-  console.log('Received renderer heartbeat:', timestamp);
-  return timestamp;
-});
 
 // Handle smooth mouse movement simulation with configurable distance
 ipcMain.handle('simulate-mouse-movement', async (event, pixelDistance = 5) => {

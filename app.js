@@ -11,8 +11,6 @@ class AFKCompanion {
         this.intervalId = null;
         this.countdownId = null;
         this.nextActionTime = 0;
-        this.heartbeatInterval = null;
-        this.lastBackgroundCheck = Date.now();
         
         this.init();
     }
@@ -21,7 +19,6 @@ class AFKCompanion {
         this.bindEvents();
         this.updateUI();
         this.startCountdown();
-        this.startBackgroundMonitoring();
     }
     
     bindEvents() {
@@ -33,8 +30,17 @@ class AFKCompanion {
         const intervalSelect = document.getElementById('interval-select');
         intervalSelect.addEventListener('change', (e) => {
             this.interval = parseInt(e.target.value);
+            console.log('Interval changed to:', this.interval, 'seconds');
+            
             if (!this.isActive) {
                 this.resetCountdown();
+            } else {
+                // If AFK is active, restart with new interval
+                console.log('Restarting AFK with new interval');
+                this.stop();
+                setTimeout(() => {
+                    this.start();
+                }, 500);
             }
         });
         
@@ -82,7 +88,7 @@ class AFKCompanion {
         
         this.updateUI();
         this.resetCountdown();
-        console.log('AFK Companion started');
+        console.log('AFK Companion started with', this.interval, 'second interval');
     }
     
     stop() {
@@ -102,16 +108,6 @@ class AFKCompanion {
     
     async performAction() {
         try {
-            // Ensure background processes are still active before performing action
-            if (typeof require !== 'undefined') {
-                try {
-                    const { ipcRenderer } = require('electron');
-                    await ipcRenderer.invoke('ensure-background-active');
-                } catch (error) {
-                    console.log('Could not verify background processes:', error);
-                }
-            }
-            
             await this.performMouseAction();
             
             this.actionCount++;
@@ -228,59 +224,7 @@ class AFKCompanion {
         document.getElementById('next-action').textContent = timeString;
     }
     
-    startBackgroundMonitoring() {
-        console.log('Starting background monitoring system');
-        
-        // Start heartbeat to keep renderer active
-        if (this.heartbeatInterval === null) {
-            this.heartbeatInterval = setInterval(async () => {
-                try {
-                    if (typeof require !== 'undefined') {
-                        const { ipcRenderer } = require('electron');
-                        await ipcRenderer.invoke('renderer-heartbeat');
-                        
-                        // Check if background processes are still active
-                        const now = Date.now();
-                        if (now - this.lastBackgroundCheck > 60000) { // Check every minute
-                            const status = await ipcRenderer.invoke('ensure-background-active');
-                            console.log('Background status check:', status);
-                            this.lastBackgroundCheck = now;
-                        }
-                    }
-                } catch (error) {
-                    console.log('Heartbeat error:', error);
-                }
-            }, 15000); // Every 15 seconds
-        }
-        
-        // Listen for background keep-alive messages from main process
-        if (typeof require !== 'undefined') {
-            try {
-                const { ipcRenderer } = require('electron');
-                ipcRenderer.on('background-keepalive', (event, timestamp) => {
-                    console.log('Received background keep-alive signal:', timestamp);
-                    
-                    // If AFK is active but seems stuck, restart it
-                    if (this.isActive && this.intervalId) {
-                        const timeSinceLastAction = Date.now() - (this.startTime + (this.actionCount * this.interval * 1000));
-                        if (timeSinceLastAction > (this.interval * 2000)) { // If twice the interval has passed
-                            console.log('Detected stuck AFK - restarting');
-                            this.restart();
-                        }
-                    }
-                });
-            } catch (error) {
-                console.log('Could not set up background listener:', error);
-            }
-        }
-    }
-    
-    stopBackgroundMonitoring() {
-        if (this.heartbeatInterval) {
-            clearInterval(this.heartbeatInterval);
-            this.heartbeatInterval = null;
-        }
-    }
+
     
     restart() {
         console.log('Restarting AFK Companion');

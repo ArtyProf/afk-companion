@@ -150,6 +150,29 @@ header p {
     border-color: #2a5298;
 }
 
+.number-input {
+    width: 80px;
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+    transition: border-color 0.3s ease;
+    text-align: center;
+}
+
+.number-input:focus {
+    outline: none;
+    border-color: #2a5298;
+}
+
+.unit-label {
+    margin-left: 8px;
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 500;
+}
+
 .info-section {
     margin-bottom: 20px;
 }

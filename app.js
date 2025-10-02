@@ -5,7 +5,7 @@ class AFKCompanion {
     constructor() {
         this.isActive = false;
         this.interval = 60; // seconds
-        this.actionType = 'mouse';
+        this.pixelDistance = 5; // pixels for mouse movement
         this.actionCount = 0;
         this.startTime = null;
         this.intervalId = null;
@@ -30,14 +30,23 @@ class AFKCompanion {
         const intervalSelect = document.getElementById('interval-select');
         intervalSelect.addEventListener('change', (e) => {
             this.interval = parseInt(e.target.value);
+            console.log('Interval changed to:', this.interval, 'seconds');
+            
             if (!this.isActive) {
                 this.resetCountdown();
+            } else {
+                // If AFK is active, restart with new interval
+                console.log('Restarting AFK with new interval');
+                this.stop();
+                setTimeout(() => {
+                    this.start();
+                }, 500);
             }
         });
         
-        const actionSelect = document.getElementById('action-select');
-        actionSelect.addEventListener('change', (e) => {
-            this.actionType = e.target.value;
+        const pixelDistanceInput = document.getElementById('pixel-distance');
+        pixelDistanceInput.addEventListener('change', (e) => {
+            this.pixelDistance = parseInt(e.target.value);
         });
         
         // Keyboard shortcuts
@@ -79,7 +88,7 @@ class AFKCompanion {
         
         this.updateUI();
         this.resetCountdown();
-        console.log('AFK Companion started');
+        console.log('AFK Companion started with', this.interval, 'second interval');
     }
     
     stop() {
@@ -90,25 +99,16 @@ class AFKCompanion {
             this.intervalId = null;
         }
         
+        // Don't stop background monitoring when stopping AFK - keep it running for tray operation
+        
         this.updateUI();
         this.resetCountdown();
         console.log('AFK Companion stopped');
     }
     
-    performAction() {
+    async performAction() {
         try {
-            switch (this.actionType) {
-                case 'mouse':
-                    this.performMouseAction();
-                    break;
-                case 'key':
-                    this.performKeyAction();
-                    break;
-                case 'both':
-                    this.performMouseAction();
-                    setTimeout(() => this.performKeyAction(), 100);
-                    break;
-            }
+            await this.performMouseAction();
             
             this.actionCount++;
             this.updateUI();
@@ -120,38 +120,26 @@ class AFKCompanion {
         }
     }
     
-    performMouseAction() {
+    async performMouseAction() {
         // Use Electron's built-in capabilities to simulate activity
         if (typeof require !== 'undefined') {
             try {
                 const { ipcRenderer } = require('electron');
-                ipcRenderer.invoke('simulate-mouse-movement');
+                console.log(`Starting mouse movement with ${this.pixelDistance}px distance`);
+                const result = await ipcRenderer.invoke('simulate-mouse-movement', this.pixelDistance);
+                if (result) {
+                    this.logAction(`Smooth mouse movement completed (${this.pixelDistance}px)`);
+                } else {
+                    console.log('Mouse movement failed, using fallback');
+                    this.fallbackMouseAction();
+                }
             } catch (error) {
-                console.log('Using fallback mouse simulation');
+                console.log('Error with mouse simulation, using fallback:', error);
                 this.fallbackMouseAction();
             }
         } else {
             this.fallbackMouseAction();
         }
-        
-        this.logAction('Mouse movement performed');
-    }
-    
-    performKeyAction() {
-        // Use Electron's built-in capabilities to simulate key press
-        if (typeof require !== 'undefined') {
-            try {
-                const { ipcRenderer } = require('electron');
-                ipcRenderer.invoke('simulate-key-press');
-            } catch (error) {
-                console.log('Using fallback key simulation');
-                this.fallbackKeyAction();
-            }
-        } else {
-            this.fallbackKeyAction();
-        }
-        
-        this.logAction('Key press performed');
     }
     
     fallbackMouseAction() {
@@ -163,21 +151,12 @@ class AFKCompanion {
             } catch (error) {
                 // Ultimate fallback: trigger a small DOM event
                 const event = new MouseEvent('mousemove', {
-                    clientX: Math.random() * 2,
-                    clientY: Math.random() * 2
+                    clientX: Math.random() * this.pixelDistance,
+                    clientY: Math.random() * this.pixelDistance
                 });
                 document.dispatchEvent(event);
             }
         }
-    }
-    
-    fallbackKeyAction() {
-        // Fallback: Create a programmatic keyboard event
-        const event = new KeyboardEvent('keydown', {
-            key: 'F24', // F24 is very rarely used
-            code: 'F24'
-        });
-        document.dispatchEvent(event);
     }
     
     logAction(message) {
@@ -243,6 +222,19 @@ class AFKCompanion {
             `${minutes}:${seconds.toString().padStart(2, '0')}` : '--';
         
         document.getElementById('next-action').textContent = timeString;
+    }
+    
+
+    
+    restart() {
+        console.log('Restarting AFK Companion');
+        const wasActive = this.isActive;
+        this.stop();
+        if (wasActive) {
+            setTimeout(() => {
+                this.start();
+            }, 1000);
+        }
     }
 }
 

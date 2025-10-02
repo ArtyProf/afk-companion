@@ -2,7 +2,7 @@
 const { ipcRenderer } = require('electron');
 
 // Import the main AFKCompanion class from centralized index
-const { AFKCompanion } = require('./src');
+const { AFKCompanion } = require('./src/renderer');
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', () => {

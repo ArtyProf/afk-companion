@@ -1,31 +1,26 @@
-// Centralized exports for all managers and providers
+// Centralized exports for all AFK Companion modules
+// This file provides a unified interface for both renderer and main process modules
 
-// Managers
-const ConfigurationManager = require('./managers/ConfigurationManager');
-const StatisticsManager = require('./managers/StatisticsManager');
-const TimerManager = require('./managers/TimerManager');
-const UIManager = require('./managers/UIManager');
+// Renderer Process Modules (Frontend)
+const RendererModules = require('./renderer');
 
-// Providers
-const ActionProvider = require('./providers/ActionProvider');
-const MouseActionProvider = require('./providers/MouseActionProvider');
-const FallbackActionProvider = require('./providers/FallbackActionProvider');
-
-// Main Controller
-const AFKCompanion = require('./AFKCompanion');
+// Main Process Modules (Backend)
+const MainModules = require('./main');
 
 module.exports = {
-    // Managers
-    ConfigurationManager,
-    StatisticsManager,
-    TimerManager,
-    UIManager,
+    // Export renderer modules with namespace
+    renderer: RendererModules,
     
-    // Providers
-    ActionProvider,
-    MouseActionProvider,
-    FallbackActionProvider,
+    // Export main modules with namespace
+    main: MainModules,
     
-    // Main Controller
-    AFKCompanion
+    // Direct exports for convenience (renderer modules)
+    ...RendererModules,
+    
+    // Prefixed main process exports to avoid conflicts
+    MainAppManager: MainModules.AppManager,
+    MainWindowManager: MainModules.WindowManager,
+    MainTrayManager: MainModules.TrayManager,
+    MainAutomationService: MainModules.AutomationService,
+    MainIPCHandler: MainModules.IPCHandler
 };

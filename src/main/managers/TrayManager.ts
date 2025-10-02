@@ -1,20 +1,20 @@
-const { Tray, Menu, nativeImage } = require('electron');
-const path = require('path');
+import { Tray, Menu, nativeImage, NativeImage } from 'electron';
+import { join } from 'path';
+import { WindowManager } from './WindowManager';
 
 /**
  * Tray Manager - Handles system tray functionality
  */
-class TrayManager {
-    constructor() {
-        this.tray = null;
-        this.windowManager = null;
-    }
-    
-    setWindowManager(windowManager) {
+export class TrayManager {
+    private tray: Tray | null = null;
+    private windowManager: WindowManager | null = null;
+    private onQuit?: () => void;
+
+    setWindowManager(windowManager: WindowManager): void {
         this.windowManager = windowManager;
     }
     
-    createTray() {
+    createTray(): Tray {
         const trayIcon = this.loadTrayIcon();
         this.tray = new Tray(trayIcon);
         
@@ -27,17 +27,17 @@ class TrayManager {
         return this.tray;
     }
     
-    loadTrayIcon() {
-        let trayIcon;
+    private loadTrayIcon(): NativeImage {
+        let trayIcon: NativeImage;
         
         try {
             // First try to load the tray icon from assets
-            const trayIconPath = path.join(__dirname, '..', '..', '..', 'assets', 'tray-icon.png');
+            const trayIconPath = join(__dirname, '..', '..', '..', 'assets', 'tray-icon.png');
             trayIcon = nativeImage.createFromPath(trayIconPath);
             
             if (trayIcon.isEmpty()) {
                 // If tray icon doesn't exist, try the main icon
-                const mainIconPath = path.join(__dirname, '..', '..', '..', 'assets', 'icon.png');
+                const mainIconPath = join(__dirname, '..', '..', '..', 'assets', 'icon.png');
                 trayIcon = nativeImage.createFromPath(mainIconPath);
                 
                 // Resize it to appropriate tray size if it's too large
@@ -47,6 +47,7 @@ class TrayManager {
             }
         } catch (error) {
             console.log('Error loading tray icon from assets:', error);
+            trayIcon = nativeImage.createEmpty();
         }
         
         // Ultimate fallback: create a template icon
@@ -58,7 +59,7 @@ class TrayManager {
         return trayIcon;
     }
     
-    buildContextMenu() {
+    private buildContextMenu(): Menu {
         return Menu.buildFromTemplate([
             {
                 label: 'Show AFK Companion',
@@ -88,7 +89,9 @@ class TrayManager {
         ]);
     }
     
-    bindTrayEvents() {
+    private bindTrayEvents(): void {
+        if (!this.tray) return;
+
         this.tray.on('double-click', () => {
             if (this.windowManager) {
                 if (this.windowManager.isWindowVisible()) {
@@ -112,20 +115,18 @@ class TrayManager {
         });
     }
     
-    getTray() {
+    getTray(): Tray | null {
         return this.tray;
     }
     
-    setOnQuit(callback) {
+    setOnQuit(callback: () => void): void {
         this.onQuit = callback;
     }
     
-    destroy() {
+    destroy(): void {
         if (this.tray) {
             this.tray.destroy();
             this.tray = null;
         }
     }
 }
-
-module.exports = TrayManager;

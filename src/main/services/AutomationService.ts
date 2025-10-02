@@ -1,9 +1,22 @@
-const { mouse, keyboard, Key } = require('@nut-tree-fork/nut-js');
+import { mouse, keyboard, Key } from '@nut-tree-fork/nut-js';
+
+interface Point {
+    x: number;
+    y: number;
+}
+
+interface AnimationConfig {
+    steps: number;
+    stepDelay: number;
+    pauseDelay: number;
+}
 
 /**
  * Automation Service - Handles mouse and keyboard automation
  */
-class AutomationService {
+export class AutomationService {
+    private animationConfig: AnimationConfig;
+
     constructor() {
         this.animationConfig = {
             steps: 12,
@@ -12,7 +25,7 @@ class AutomationService {
         };
     }
     
-    async simulateMouseMovement(pixelDistance = 5) {
+    async simulateMouseMovement(pixelDistance: number = 5): Promise<boolean> {
         try {
             // Get current mouse position using nut-js
             const currentPos = await mouse.getPosition();
@@ -39,7 +52,7 @@ class AutomationService {
         }
     }
     
-    async toggleScrollLock() {
+    private async toggleScrollLock(): Promise<void> {
         try {
             await keyboard.pressKey(Key.ScrollLock);
             await keyboard.releaseKey(Key.ScrollLock);
@@ -47,12 +60,12 @@ class AutomationService {
             await keyboard.pressKey(Key.ScrollLock);
             await keyboard.releaseKey(Key.ScrollLock);
             console.log('ScrollLock toggle completed');
-        } catch (error) {
+        } catch (error: any) {
             console.log('ScrollLock toggle error:', error.message);
         }
     }
     
-    async performSmoothMovement(startPos, targetPos) {
+    private async performSmoothMovement(startPos: Point, targetPos: Point): Promise<void> {
         const { steps, stepDelay, pauseDelay } = this.animationConfig;
         
         // Smooth movement to target
@@ -65,7 +78,7 @@ class AutomationService {
                 if (i < steps) {
                     await this.delay(stepDelay);
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.log('Movement step error:', error.message);
             }
         }
@@ -83,13 +96,13 @@ class AutomationService {
                 if (i < steps) {
                     await this.delay(stepDelay);
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.log('Return movement error:', error.message);
             }
         }
     }
     
-    async getCurrentMousePosition() {
+    async getCurrentMousePosition(): Promise<Point> {
         try {
             return await mouse.getPosition();
         } catch (error) {
@@ -98,7 +111,7 @@ class AutomationService {
         }
     }
     
-    async setMousePosition(x, y) {
+    async setMousePosition(x: number, y: number): Promise<boolean> {
         try {
             await mouse.setPosition({ x, y });
             return true;
@@ -108,17 +121,15 @@ class AutomationService {
         }
     }
     
-    setAnimationConfig(config) {
+    setAnimationConfig(config: Partial<AnimationConfig>): void {
         this.animationConfig = { ...this.animationConfig, ...config };
     }
     
-    getAnimationConfig() {
+    getAnimationConfig(): AnimationConfig {
         return { ...this.animationConfig };
     }
     
-    delay(ms) {
+    private delay(ms: number): Promise<void> {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
-
-module.exports = AutomationService;

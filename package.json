@@ -2,13 +2,18 @@
   "name": "afk-companion",
   "version": "0.6.0",
   "description": "AFK Companion - Anti-idle utility to prevent being marked as away",
-  "main": "main.js",
+  "main": "dist-ts/main.js",
   "scripts": {
-    "start": "electron .",
-    "build": "electron-builder",
-    "build:win": "electron-builder --win",
-    "build:linux": "electron-builder --linux",
-    "dist": "electron-builder --publish=never"
+    "start": "npm run build:ts && electron .",
+    "start:dev": "nodemon --exec \"npm run build:ts && electron .\" --watch src --ext ts,js",
+    "build:ts": "tsc",
+    "build:ts:watch": "tsc --watch",
+    "build": "npm run build:ts && electron-builder",
+    "build:win": "npm run build:ts && electron-builder --win",
+    "build:linux": "npm run build:ts && electron-builder --linux",
+    "dist": "npm run build:ts && electron-builder --publish=never",
+    "clean": "rimraf dist-ts",
+    "type-check": "tsc --noEmit"
   },
   "keywords": [
     "electron",
@@ -20,8 +25,13 @@
   "author": "ArtyProf",
   "license": "MIT",
   "devDependencies": {
+    "@types/electron": "^1.4.38",
+    "@types/node": "^24.6.2",
     "electron": "^27.0.0",
-    "electron-builder": "^24.6.4"
+    "electron-builder": "^24.6.4",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   },
   "build": {
     "appId": "com.artyprof.afk-companion",

@@ -1,15 +1,20 @@
-const { app, BrowserWindow } = require('electron');
+import { app, BrowserWindow } from 'electron';
 
 // Import managers and services
-const WindowManager = require('./managers/WindowManager');
-const TrayManager = require('./managers/TrayManager');
-const AutomationService = require('./services/AutomationService');
-const IPCHandler = require('./handlers/IPCHandler');
+import { WindowManager } from './managers/WindowManager';
+import { TrayManager } from './managers/TrayManager';
+import { AutomationService } from './services/AutomationService';
+import { IPCHandler } from './handlers/IPCHandler';
 
 /**
  * App Manager - Main orchestrator for the Electron application
  */
-class AppManager {
+export class AppManager {
+    private windowManager: WindowManager;
+    private trayManager: TrayManager;
+    private automationService: AutomationService;
+    private ipcHandler: IPCHandler;
+
     constructor() {
         this.windowManager = new WindowManager();
         this.trayManager = new TrayManager();
@@ -20,7 +25,7 @@ class AppManager {
         this.bindAppEvents();
     }
     
-    setupDependencies() {
+    private setupDependencies(): void {
         // Set up cross-dependencies between managers
         this.trayManager.setWindowManager(this.windowManager);
         this.ipcHandler.setAutomationService(this.automationService);
@@ -32,7 +37,7 @@ class AppManager {
         this.trayManager.setOnQuit(() => this.handleAppQuit());
     }
     
-    bindAppEvents() {
+    private bindAppEvents(): void {
         app.whenReady().then(() => this.onAppReady());
         
         app.on('window-all-closed', () => this.onWindowAllClosed());
@@ -47,7 +52,7 @@ class AppManager {
         });
     }
     
-    async onAppReady() {
+    private async onAppReady(): Promise<void> {
         try {
             // Initialize IPC handlers
             this.ipcHandler.registerHandlers();
@@ -62,38 +67,38 @@ class AppManager {
         }
     }
     
-    onWindowAllClosed() {
+    private onWindowAllClosed(): void {
         // Don't quit the app when window is closed - keep running in tray
         // Only quit when explicitly requested through tray menu or app.isQuiting flag
         console.log('All windows closed - keeping app running in tray');
     }
     
-    onActivate() {
+    private onActivate(): void {
         if (BrowserWindow.getAllWindows().length === 0) {
             this.windowManager.createWindow();
         }
     }
     
-    handleWindowMinimize() {
+    private handleWindowMinimize(): void {
         if (!this.trayManager.getTray()) {
             this.trayManager.createTray();
         }
     }
     
-    handleWindowClose() {
+    private handleWindowClose(): void {
         if (!this.trayManager.getTray()) {
             this.trayManager.createTray();
         }
     }
     
-    handleAppQuit() {
-        app.isQuiting = true;
+    private handleAppQuit(): void {
+        (app as any).isQuiting = true;
         this.windowManager.setQuiting(true);
         this.cleanup();
         app.quit();
     }
     
-    cleanup() {
+    private cleanup(): void {
         // Clean up resources
         this.ipcHandler.unregisterHandlers();
         this.trayManager.destroy();
@@ -101,21 +106,19 @@ class AppManager {
     }
     
     // Getters for external access
-    getWindowManager() {
+    getWindowManager(): WindowManager {
         return this.windowManager;
     }
     
-    getTrayManager() {
+    getTrayManager(): TrayManager {
         return this.trayManager;
     }
     
-    getAutomationService() {
+    getAutomationService(): AutomationService {
         return this.automationService;
     }
     
-    getIPCHandler() {
+    getIPCHandler(): IPCHandler {
         return this.ipcHandler;
     }
 }
-
-module.exports = AppManager;

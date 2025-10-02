@@ -21,6 +21,8 @@
    ```bash
    npm install
    ```
+   
+   > **Technical Note**: This app uses `@nut-tree-fork/nut-js` for cross-platform automation. While the official nut-js documentation mentions `npm i @nut-tree/nut-js`, the original package is no longer maintained. We use the actively maintained fork which provides identical functionality and API compatibility.
 
 2. ▶️ **Run the Application**:
    ```bash
@@ -35,32 +37,21 @@
 
 ## 🔧 How It Works
 
-### 🪟 Windows
-- 🖱️ **Smooth Mouse Movement**: Uses PowerShell with interpolated movement in small steps
-- 🔐 **ScrollLock Toggle**: Sends ScrollLock key press twice (on/off) to prevent system sleep
-- 🎯 **Circular Patterns**: Moves cursor in random circular patterns for natural behavior
-- ⚡ **Configurable Distance**: User-defined pixel distance (1-50px) for movement radius
-
-### 🐧 Linux  
-- 🖱️ **Smooth Mouse Movement**: Uses `xdotool` with step-by-step interpolation
-- 🎮 **Steam Deck Compatible**: Works with xdotool on Steam Deck and all Linux distros
-- 🔐 **ScrollLock Toggle**: Uses `xdotool` to send ScrollLock key presses for system wake
-- 🎯 **Natural Patterns**: Same circular movement patterns as Windows
-- ⚡ **Cross-Platform Consistency**: Identical behavior across platforms
-
-> **Note**: On Linux, you may need to install `xdotool`:
-> ```bash
-> sudo apt install xdotool  # Ubuntu/Debian
-> sudo dnf install xdotool  # Fedora
-> sudo pacman -S xdotool    # Arch Linux
-> ```
-> 
-> Steam Deck users: `xdotool` is pre-installed and should work out of the box.
+### 🌐 **Universal Cross-Platform Solution**
+- 🎯 **nut-js Integration**: Uses modern @nut-tree-fork/nut-js library for all platforms
+  > **Note**: We use `@nut-tree-fork/nut-js` instead of the original `@nut-tree/nut-js` as the original package is no longer maintained. The fork is actively maintained and provides the same API.
+- 🖱️ **Smooth Mouse Movement**: Native step-by-step interpolation on Windows & Linux
+- 🔐 **ScrollLock Toggle**: Universal key press simulation (on/off) to prevent system sleep
+- � **Steam Compatible**: Works in Steam environments without PATH restrictions
+- �️ **Zero Dependencies**: No external tools required (xdotool, PowerShell scripts eliminated)
+- ⚡ **Identical Behavior**: Same smooth circular patterns across all platforms
+- 🎯 **Configurable Distance**: User-defined pixel distance (1-50px) for movement radius
 
 ### 🏗️ **Architecture**
 - 🔄 **Simple & Reliable**: Removed complex background monitoring for stability
 - 🗂️ **System Tray Persistence**: App never quits when window closed
-- ⚡ **Efficient Processing**: Minimal resource usage with PowerShell/xdotool integration
+- ⚡ **Efficient Processing**: Minimal resource usage with native nut-js automation
+- 🎮 **Universal Compatibility**: Works everywhere Node.js runs (Windows, Linux, Steam)
 
 ## 🎯 Movement System
 

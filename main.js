@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const path = require('path');
-const xdotoolFinder = require('./utils/xdotool-finder');
+const { mouse, keyboard, Key } = require('@nut-tree-fork/nut-js');
 
 let mainWindow;
 let tray;
@@ -174,84 +174,69 @@ ipcMain.handle('get-platform', () => {
 
 
 // Handle smooth mouse movement simulation with configurable distance and ScrollLock toggle
+// 🎯 Universal cross-platform solution using nut-js (works on Windows, Linux, Steam)
 ipcMain.handle('simulate-mouse-movement', async (event, pixelDistance = 5) => {
   try {
-    const { screen } = require('electron');
-    const { exec } = require('child_process');
-    const { promisify } = require('util');
-    const execAsync = promisify(exec);
     
-    // Get current mouse position
-    const cursor = screen.getCursorScreenPoint();
+    // Get current mouse position using nut-js
+    const currentPos = await mouse.getPosition();
     
     // Calculate target position (circular movement for better coverage)
     const angle = Math.random() * Math.PI * 2;
-    const targetX = cursor.x + Math.cos(angle) * pixelDistance;
-    const targetY = cursor.y + Math.sin(angle) * pixelDistance;
+    const targetX = Math.round(currentPos.x + Math.cos(angle) * pixelDistance);
+    const targetY = Math.round(currentPos.y + Math.sin(angle) * pixelDistance);
     
-    if (process.platform === 'win32') {
-      // Windows: Use PowerShell function for smooth movement + ScrollLock toggle
-      const startX = Math.round(cursor.x);
-      const startY = Math.round(cursor.y);
-      const endX = Math.round(targetX);
-      const endY = Math.round(targetY);
+    console.log(`Moving mouse from (${currentPos.x}, ${currentPos.y}) to (${targetX}, ${targetY})`);
+    
+    // Toggle ScrollLock twice (on then off) to prevent system sleep
+    try {
+      await keyboard.pressKey(Key.ScrollLock);
+      await keyboard.releaseKey(Key.ScrollLock);
+      await new Promise(resolve => setTimeout(resolve, 10));
+      await keyboard.pressKey(Key.ScrollLock);
+      await keyboard.releaseKey(Key.ScrollLock);
+      console.log('ScrollLock toggle completed');
+    } catch (error) {
+      console.log('ScrollLock toggle error:', error.message);
+    }
+    
+    // Smooth mouse movement in steps
+    const steps = 12;
+    const stepDelay = 8;
+    
+    for (let i = 1; i <= steps; i++) {
+      const currentX = Math.round(currentPos.x + (targetX - currentPos.x) * (i / steps));
+      const currentY = Math.round(currentPos.y + (targetY - currentPos.y) * (i / steps));
       
-      const powershellScript = `Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; function Move-MouseSmoothly { param([int]$StartX, [int]$StartY, [int]$TargetX, [int]$TargetY, [int]$Steps = 10) for ($i = 1; $i -le $Steps; $i++) { $X = $StartX + (($TargetX - $StartX) * $i / $Steps); $Y = $StartY + (($TargetY - $StartY) * $i / $Steps); [System.Windows.Forms.Cursor]::Position = New-Object System.Drawing.Point([math]::Round($X), [math]::Round($Y)); Start-Sleep -Milliseconds 10 } }; [System.Windows.Forms.SendKeys]::SendWait('{SCROLLLOCK}'); Start-Sleep -Milliseconds 10; [System.Windows.Forms.SendKeys]::SendWait('{SCROLLLOCK}'); Move-MouseSmoothly -StartX ${startX} -StartY ${startY} -TargetX ${endX} -TargetY ${endY}; Start-Sleep -Milliseconds 50; Move-MouseSmoothly -StartX ${endX} -StartY ${endY} -TargetX ${startX} -TargetY ${startY}`;
-      
-      console.log('Executing PowerShell mouse movement with ScrollLock toggle...');
-      const result = await execAsync(`powershell.exe -Command "${powershellScript}"`);
-      console.log('PowerShell execution with ScrollLock completed successfully');
-      
-    } else if (process.platform === 'linux') {
-      // Linux: Use xdotool with smooth movement simulation + ScrollLock toggle
-      const steps = 12;
-      const stepDelay = 8;
-      
-      // Use cached xdotool path from startup detection
-      const xdotoolPath = xdotoolFinder.getXdotoolPath();
-      
-      // Toggle ScrollLock twice (on then off) to prevent sleep
       try {
-        await execAsync(`${xdotoolPath} key Scroll_Lock`);
-        await new Promise(resolve => setTimeout(resolve, 10));
-        await execAsync(`${xdotoolPath} key Scroll_Lock`);
-        console.log('ScrollLock toggle completed');
+        await mouse.setPosition({ x: currentX, y: currentY });
+        if (i < steps) {
+          await new Promise(resolve => setTimeout(resolve, stepDelay));
+        }
       } catch (error) {
-        console.log('ScrollLock toggle error:', error.message);
-      }
-      
-      for (let i = 1; i <= steps; i++) {
-        const currentX = Math.round(cursor.x + (targetX - cursor.x) * (i / steps));
-        const currentY = Math.round(cursor.y + (targetY - cursor.y) * (i / steps));
-        
-        try {
-          await execAsync(`${xdotoolPath} mousemove ${currentX} ${currentY}`);
-          if (i < steps) {
-            await new Promise(resolve => setTimeout(resolve, stepDelay));
-          }
-        } catch (error) {
-          console.log('Linux movement step error:', error.message);
-        }
-      }
-      
-      // Brief pause at target
-      await new Promise(resolve => setTimeout(resolve, 80));
-      
-      // Move back smoothly
-      for (let i = 1; i <= steps; i++) {
-        const currentX = Math.round(targetX + (cursor.x - targetX) * (i / steps));
-        const currentY = Math.round(targetY + (cursor.y - targetY) * (i / steps));
-        
-        try {
-          await execAsync(`${xdotoolPath} mousemove ${currentX} ${currentY}`);
-          if (i < steps) {
-            await new Promise(resolve => setTimeout(resolve, stepDelay));
-          }
-        } catch (error) {
-          console.log('Linux return movement error:', error.message);
-        }
+        console.log('Movement step error:', error.message);
       }
     }
+    
+    // Brief pause at target
+    await new Promise(resolve => setTimeout(resolve, 80));
+    
+    // Move back smoothly to original position
+    for (let i = 1; i <= steps; i++) {
+      const returnX = Math.round(targetX + (currentPos.x - targetX) * (i / steps));
+      const returnY = Math.round(targetY + (currentPos.y - targetY) * (i / steps));
+      
+      try {
+        await mouse.setPosition({ x: returnX, y: returnY });
+        if (i < steps) {
+          await new Promise(resolve => setTimeout(resolve, stepDelay));
+        }
+      } catch (error) {
+        console.log('Return movement error:', error.message);
+      }
+    }
+    
+    console.log('Universal mouse simulation completed successfully');
     
     return true;
   } catch (error) {

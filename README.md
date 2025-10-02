@@ -42,8 +42,8 @@
   > **Note**: We use `@nut-tree-fork/nut-js` instead of the original `@nut-tree/nut-js` as the original package is no longer maintained. The fork is actively maintained and provides the same API.
 - 🖱️ **Smooth Mouse Movement**: Native step-by-step interpolation on Windows & Linux
 - 🔐 **ScrollLock Toggle**: Universal key press simulation (on/off) to prevent system sleep
-- � **Steam Compatible**: Works in Steam environments without PATH restrictions
-- �️ **Zero Dependencies**: No external tools required (xdotool, PowerShell scripts eliminated)
+- 🎮 **Steam Compatible**: Works in Steam environments without PATH restrictions
+- 🔄 **Zero Dependencies**: No external tools required (xdotool, PowerShell scripts eliminated)
 - ⚡ **Identical Behavior**: Same smooth circular patterns across all platforms
 - 🎯 **Configurable Distance**: User-defined pixel distance (1-50px) for movement radius
 
@@ -55,10 +55,10 @@
 
 ## 🎯 Movement System
 
-- 🖱️ **Smooth Mouse Movement**: Gradual, interpolated cursor movement (10 steps per action)
+- 🖱️ **Smooth Mouse Movement**: Gradual, interpolated cursor movement (12 steps per action)
 - 🎯 **Circular Patterns**: Random-direction movement within configured radius
 - 📏 **Configurable Distance**: Set movement radius from 1-50 pixels via UI
-- ⏱️ **Natural Timing**: 10ms delays between steps for human-like movement
+- ⏱️ **Natural Timing**: 8ms delays between steps for human-like movement
 - 🔄 **Return Path**: Smooth return to original position after brief pause
 - � **Invisible Operation**: Movement radius small enough to be unnoticeable
 
@@ -66,7 +66,6 @@
 
 - ⏲️ **Movement Interval**: Choose from 5 seconds, 30 seconds, 1 minute, 2 minutes, or 5 minutes
 - 📏 **Mouse Distance**: Set movement radius from 1-50 pixels for different visibility needs
-- � **Action Type**: Mouse Movement (simplified, focused approach)
 - 🌙 **System Tray**: Auto-minimizes to tray, continues running in background
 - 🔄 **Always Active**: App never quits when window closed - only via tray menu
 
@@ -139,8 +138,7 @@ Steam deployment includes both Windows portable executable and Linux packages. �
 - If issues persist, try reducing the interval to 30 seconds or 1 minute
 
 **🎮 Not working on Steam Deck/Linux:**
-- Ensure `xdotool` is installed: `sudo apt install xdotool` or `sudo pacman -S xdotool`
-- Steam Deck users: `xdotool` should be pre-installed
+- The app now uses universal nut-js automation - no external dependencies required
 - Check console logs for error messages if mouse movement fails
 - Try running the app from terminal to see detailed error output
 
@@ -163,7 +161,7 @@ Steam deployment includes both Windows portable executable and Linux packages. �
 - Double-click tray icon to restore window
 - Right-click tray icon for context menu
 
-## �📄 License
+## 📄 License
 
 MIT License - Feel free to use and modify. 💻
 
@@ -178,29 +176,13 @@ This tool is for legitimate use cases like preventing unwanted AFK timeouts. Ple
 ### Performance
 - **Resource Usage**: ~50-100MB RAM, minimal CPU usage
 - **Background Throttling**: Disabled to ensure consistent operation
-- **System Integration**: Native PowerShell (Windows) / xdotool (Linux)
+- **System Integration**: Universal nut-js automation library
 
 ### Security
 - **No Network Access**: Completely offline operation
 - **No Data Collection**: No telemetry or analytics
 - **Local Processing**: All operations performed locally
 - **Safe Actions**: Uses non-intrusive system calls
-
-### Movement Algorithm
-```javascript
-// Circular movement pattern
-const angle = Math.random() * Math.PI * 2;
-const targetX = cursor.x + Math.cos(angle) * pixelDistance;
-const targetY = cursor.y + Math.sin(angle) * pixelDistance;
-
-// Smooth interpolation over 10 steps
-for (let step = 1; step <= 10; step++) {
-  const progress = step / 10;
-  const currentX = startX + (targetX - startX) * progress;
-  const currentY = startY + (targetY - startY) * progress;
-  // Move cursor and wait 10ms
-}
-```
 
 ---
 

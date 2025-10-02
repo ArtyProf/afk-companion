@@ -36,13 +36,7 @@
                         </select>
                     </div>
                     
-                    <div class="setting-group">
-                        <label for="action-select">Action Type:</label>
-                        <select id="action-select" class="select-input">
-                            <option value="mouse" selected>Mouse Movement</option>
-                        </select>
-                    </div>
-                    
+
                     <div class="setting-group">
                         <label for="pixel-distance">Mouse Distance:</label>
                         <input type="number" id="pixel-distance" class="number-input" min="1" max="50" value="5" />
@@ -71,8 +65,8 @@
                 <div class="info-section">
                     <h3>How it works</h3>
                     <ul class="info-list">
-                        <li><strong>Mouse Movement:</strong> Moves cursor by configurable pixels (invisible)</li>
-                        <li><strong>Safe:</strong> Uses minimal system resources</li>
+                        <li><strong>Mouse Movement:</strong> Universal cross-platform automation (invisible)</li>
+                        <li><strong>Safe:</strong> Uses minimal system resources with ScrollLock toggle</li>
                         <li><strong>System Tray:</strong> Minimizes to tray for background operation</li>
                         <li><strong>Local Only:</strong> No data sent anywhere</li>
                     </ul>
@@ -85,6 +79,6 @@
         </footer>
     </div>
     
-    <script src="app.js"></script>
+    <script src="dist-ts/app.js"></script>
 </body>
 </html>

@@ -1,0 +1,111 @@
+import { ipcMain, IpcMainInvokeEvent } from 'electron';
+import { AutomationService } from '../services/AutomationService';
+import { WindowManager } from '../managers/WindowManager';
+
+/**
+ * IPC Handler - Manages Inter-Process Communication between main and renderer
+ */
+export class IPCHandler {
+    private automationService: AutomationService | null = null;
+    private windowManager: WindowManager | null = null;
+
+    setAutomationService(automationService: AutomationService): void {
+        this.automationService = automationService;
+    }
+    
+    setWindowManager(windowManager: WindowManager): void {
+        this.windowManager = windowManager;
+    }
+    
+    registerHandlers(): void {
+        // Platform information
+        ipcMain.handle('get-platform', () => {
+            return process.platform;
+        });
+        
+        // Mouse movement simulation
+        ipcMain.handle('simulate-mouse-movement', async (event: IpcMainInvokeEvent, pixelDistance: number = 5) => {
+            if (this.automationService) {
+                return await this.automationService.simulateMouseMovement(pixelDistance);
+            }
+            return false;
+        });
+        
+        // Window jiggle fallback
+        ipcMain.handle('jiggle-window', () => {
+            return this.jiggleWindow();
+        });
+        
+        // Mouse position utilities
+        ipcMain.handle('get-mouse-position', async () => {
+            if (this.automationService) {
+                return await this.automationService.getCurrentMousePosition();
+            }
+            return { x: 0, y: 0 };
+        });
+        
+        // Set mouse position
+        ipcMain.handle('set-mouse-position', async (event: IpcMainInvokeEvent, x: number, y: number) => {
+            if (this.automationService) {
+                return await this.automationService.setMousePosition(x, y);
+            }
+            return false;
+        });
+        
+        // Animation configuration
+        ipcMain.handle('set-animation-config', (event: IpcMainInvokeEvent, config: any) => {
+            if (this.automationService) {
+                this.automationService.setAnimationConfig(config);
+                return true;
+            }
+            return false;
+        });
+        
+        ipcMain.handle('get-animation-config', () => {
+            if (this.automationService) {
+                return this.automationService.getAnimationConfig();
+            }
+            return null;
+        });
+        
+        console.log('IPC handlers registered successfully');
+    }
+    
+    private jiggleWindow(): boolean {
+        try {
+            if (this.windowManager) {
+                const [x, y] = this.windowManager.getWindowPosition();
+                this.windowManager.setWindowPosition(x + 1, y);
+                setTimeout(() => {
+                    if (this.windowManager) {
+                        this.windowManager.setWindowPosition(x, y);
+                    }
+                }, 10);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Error jiggling window:', error);
+            return false;
+        }
+    }
+    
+    unregisterHandlers(): void {
+        // Remove all IPC handlers
+        const handlers = [
+            'get-platform',
+            'simulate-mouse-movement',
+            'jiggle-window',
+            'get-mouse-position',
+            'set-mouse-position',
+            'set-animation-config',
+            'get-animation-config'
+        ];
+        
+        handlers.forEach(handler => {
+            ipcMain.removeHandler(handler);
+        });
+        
+        console.log('IPC handlers unregistered');
+    }
+}

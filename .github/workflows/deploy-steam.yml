@@ -304,7 +304,7 @@ jobs:
           
           ### 📥 Downloads
           - **🪟 Windows**: `afk-companion-${{ needs.check-version.outputs.version }}-windows.exe` - Portable executable
-          - **📦 Linux Archive**: `*.tar.gz` - Compressed package
+          - **📦 Linux Archive**: `afk-companion-${{ needs.check-version.outputs.version }}.tar.gz` - Compressed package (version pattern: afk-companion-X.Y.Z.tar.gz)
           
           ### 🚀 Steam Deployment
           - **🆔 App ID**: 2609100

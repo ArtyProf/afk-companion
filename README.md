@@ -42,25 +42,20 @@
 - ⚡ **Configurable Distance**: User-defined pixel distance (1-50px) for movement radius
 
 ### 🐧 Linux  
-- 🖱️ **Smart Tool Detection**: Automatically uses `ydotool` (Wayland/Steam Deck), `xdotool` (X11), or `wlrctl`
-- 🎮 **Steam Deck Compatible**: Native support for Steam Deck's Wayland environment
-- 🔐 **ScrollLock Toggle**: Adaptive key press method based on available tools
+- 🖱️ **Smooth Mouse Movement**: Uses `xdotool` with step-by-step interpolation
+- 🎮 **Steam Deck Compatible**: Works with xdotool on Steam Deck and all Linux distros
+- 🔐 **ScrollLock Toggle**: Uses `xdotool` to send ScrollLock key presses for system wake
 - 🎯 **Natural Patterns**: Same circular movement patterns as Windows
-- ⚡ **Multi-Method Fallback**: Tries multiple approaches for maximum compatibility
+- ⚡ **Cross-Platform Consistency**: Identical behavior across platforms
 
-> **Note**: For Linux compatibility, the app automatically detects and uses available tools:
-> - **Steam Deck/Wayland**: Uses `ydotool` (pre-installed on Steam Deck)
-> - **Traditional Linux/X11**: Uses `xdotool`
-> - **Alternative Wayland**: Uses `wlrctl` if available
-> 
-> If needed, install tools manually:
+> **Note**: On Linux, you may need to install `xdotool`:
 > ```bash
-> # For X11 systems (Ubuntu/Debian)
-> sudo apt install xdotool
-> 
-> # For Wayland systems
-> sudo apt install ydotool  # or: sudo pacman -S ydotool
+> sudo apt install xdotool  # Ubuntu/Debian
+> sudo dnf install xdotool  # Fedora
+> sudo pacman -S xdotool    # Arch Linux
 > ```
+> 
+> Steam Deck users: `xdotool` is pre-installed and should work out of the box.
 
 ### 🏗️ **Architecture**
 - 🔄 **Simple & Reliable**: Removed complex background monitoring for stability
@@ -153,10 +148,10 @@ Steam deployment includes both Windows portable executable and Linux packages. �
 - If issues persist, try reducing the interval to 30 seconds or 1 minute
 
 **🎮 Not working on Steam Deck/Linux:**
-- App automatically detects Steam Deck and uses `ydotool` for Wayland compatibility
-- On other Linux systems, ensure either `xdotool` or `ydotool` is installed
-- Check console logs for which method is being used
-- For Wayland systems: `sudo apt install ydotool` or `sudo pacman -S ydotool`
+- Ensure `xdotool` is installed: `sudo apt install xdotool` or `sudo pacman -S xdotool`
+- Steam Deck users: `xdotool` should be pre-installed
+- Check console logs for error messages if mouse movement fails
+- Try running the app from terminal to see detailed error output
 
 **🚫 App stops working after laptop sleep/hibernate:**
 - This has been resolved! The app now stays active in system tray
@@ -174,7 +169,7 @@ Steam deployment includes both Windows portable executable and Linux packages. �
 
 **🖥️ App not visible in taskbar:**
 - App minimizes to system tray (look for icon near clock)
-- Click tray icon to restore window
+- Double-click tray icon to restore window
 - Right-click tray icon for context menu
 
 ## �📄 License

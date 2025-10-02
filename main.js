@@ -190,159 +190,50 @@ ipcMain.handle('simulate-mouse-movement', async (event, pixelDistance = 5) => {
       console.log('PowerShell execution with ScrollLock completed successfully');
       
     } else if (process.platform === 'linux') {
-      // Linux: Multi-method approach for Steam Deck and various Linux distros
+      // Linux: Use xdotool with smooth movement simulation + ScrollLock toggle
       const steps = 12;
       const stepDelay = 8;
-      let mouseMovementSuccess = false;
       
-      // Method 1: Try ydotool first (works with Wayland - Steam Deck default)
-      if (!mouseMovementSuccess) {
+      // Toggle ScrollLock twice (on then off) to prevent sleep
+      try {
+        await execAsync('xdotool key Scroll_Lock');
+        await new Promise(resolve => setTimeout(resolve, 10));
+        await execAsync('xdotool key Scroll_Lock');
+        console.log('ScrollLock toggle completed');
+      } catch (error) {
+        console.log('ScrollLock toggle error:', error.message);
+      }
+      
+      for (let i = 1; i <= steps; i++) {
+        const currentX = Math.round(cursor.x + (targetX - cursor.x) * (i / steps));
+        const currentY = Math.round(cursor.y + (targetY - cursor.y) * (i / steps));
+        
         try {
-          // Check if ydotool is available
-          await execAsync('which ydotool');
-          console.log('Using ydotool for Wayland/Steam Deck...');
-          
-          // Toggle ScrollLock with ydotool
-          try {
-            await execAsync('ydotool key 70:1 70:0'); // ScrollLock press and release
-            await new Promise(resolve => setTimeout(resolve, 10));
-            await execAsync('ydotool key 70:1 70:0'); // ScrollLock press and release again
-            console.log('ydotool ScrollLock toggle completed');
-          } catch (error) {
-            console.log('ydotool ScrollLock error:', error.message);
+          await execAsync(`xdotool mousemove ${currentX} ${currentY}`);
+          if (i < steps) {
+            await new Promise(resolve => setTimeout(resolve, stepDelay));
           }
-          
-          // Smooth mouse movement with ydotool
-          for (let i = 1; i <= steps; i++) {
-            const currentX = Math.round(cursor.x + (targetX - cursor.x) * (i / steps));
-            const currentY = Math.round(cursor.y + (targetY - cursor.y) * (i / steps));
-            
-            try {
-              await execAsync(`ydotool mousemove --absolute ${currentX} ${currentY}`);
-              if (i < steps) {
-                await new Promise(resolve => setTimeout(resolve, stepDelay));
-              }
-            } catch (error) {
-              console.log('ydotool movement error:', error.message);
-              break;
-            }
-          }
-          
-          // Brief pause at target
-          await new Promise(resolve => setTimeout(resolve, 80));
-          
-          // Move back smoothly
-          for (let i = 1; i <= steps; i++) {
-            const currentX = Math.round(targetX + (cursor.x - targetX) * (i / steps));
-            const currentY = Math.round(targetY + (cursor.y - targetY) * (i / steps));
-            
-            try {
-              await execAsync(`ydotool mousemove --absolute ${currentX} ${currentY}`);
-              if (i < steps) {
-                await new Promise(resolve => setTimeout(resolve, stepDelay));
-              }
-            } catch (error) {
-              console.log('ydotool return movement error:', error.message);
-            }
-          }
-          
-          mouseMovementSuccess = true;
-          console.log('ydotool mouse movement completed successfully');
-          
         } catch (error) {
-          console.log('ydotool not available, trying xdotool...');
+          console.log('Linux movement step error:', error.message);
         }
       }
       
-      // Method 2: Fallback to xdotool (works with X11)
-      if (!mouseMovementSuccess) {
-        try {
-          // Check if xdotool is available
-          await execAsync('which xdotool');
-          console.log('Using xdotool for X11...');
-          
-          // Toggle ScrollLock with xdotool
-          try {
-            await execAsync('xdotool key Scroll_Lock');
-            await new Promise(resolve => setTimeout(resolve, 10));
-            await execAsync('xdotool key Scroll_Lock');
-            console.log('xdotool ScrollLock toggle completed');
-          } catch (error) {
-            console.log('xdotool ScrollLock error:', error.message);
-          }
-          
-          for (let i = 1; i <= steps; i++) {
-            const currentX = Math.round(cursor.x + (targetX - cursor.x) * (i / steps));
-            const currentY = Math.round(cursor.y + (targetY - cursor.y) * (i / steps));
-            
-            try {
-              await execAsync(`xdotool mousemove ${currentX} ${currentY}`);
-              if (i < steps) {
-                await new Promise(resolve => setTimeout(resolve, stepDelay));
-              }
-            } catch (error) {
-              console.log('xdotool movement step error:', error.message);
-            }
-          }
-          
-          // Brief pause at target
-          await new Promise(resolve => setTimeout(resolve, 80));
-          
-          // Move back smoothly
-          for (let i = 1; i <= steps; i++) {
-            const currentX = Math.round(targetX + (cursor.x - targetX) * (i / steps));
-            const currentY = Math.round(targetY + (cursor.y - targetY) * (i / steps));
-            
-            try {
-              await execAsync(`xdotool mousemove ${currentX} ${currentY}`);
-              if (i < steps) {
-                await new Promise(resolve => setTimeout(resolve, stepDelay));
-              }
-            } catch (error) {
-              console.log('xdotool return movement error:', error.message);
-            }
-          }
-          
-          mouseMovementSuccess = true;
-          console.log('xdotool mouse movement completed successfully');
-          
-        } catch (error) {
-          console.log('xdotool not available, trying alternative methods...');
-        }
-      }
+      // Brief pause at target
+      await new Promise(resolve => setTimeout(resolve, 80));
       
-      // Method 3: Try wlrctl (for wlroots-based Wayland compositors)
-      if (!mouseMovementSuccess) {
+      // Move back smoothly
+      for (let i = 1; i <= steps; i++) {
+        const currentX = Math.round(targetX + (cursor.x - targetX) * (i / steps));
+        const currentY = Math.round(targetY + (cursor.y - targetY) * (i / steps));
+        
         try {
-          await execAsync('which wlrctl');
-          console.log('Using wlrctl for wlroots Wayland...');
-          
-          for (let i = 1; i <= steps; i++) {
-            const currentX = Math.round(cursor.x + (targetX - cursor.x) * (i / steps));
-            const currentY = Math.round(cursor.y + (targetY - cursor.y) * (i / steps));
-            
-            try {
-              await execAsync(`wlrctl pointer move ${currentX} ${currentY}`);
-              if (i < steps) {
-                await new Promise(resolve => setTimeout(resolve, stepDelay));
-              }
-            } catch (error) {
-              console.log('wlrctl movement error:', error.message);
-            }
+          await execAsync(`xdotool mousemove ${currentX} ${currentY}`);
+          if (i < steps) {
+            await new Promise(resolve => setTimeout(resolve, stepDelay));
           }
-          
-          mouseMovementSuccess = true;
-          console.log('wlrctl mouse movement completed successfully');
-          
         } catch (error) {
-          console.log('wlrctl not available');
+          console.log('Linux return movement error:', error.message);
         }
-      }
-      
-      // Method 4: Fallback - just jiggle the window if all else fails
-      if (!mouseMovementSuccess) {
-        console.log('All mouse movement methods failed, using window jiggle fallback');
-        // This will be handled by the window jiggle method as a last resort
       }
     }
     

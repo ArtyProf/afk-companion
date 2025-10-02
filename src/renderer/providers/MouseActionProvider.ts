@@ -1,11 +1,15 @@
-const ActionProvider = require('./ActionProvider');
-const { ipcRenderer } = require('electron');
+import { ActionProvider, ActionResult } from './ActionProvider';
+import { ipcRenderer } from 'electron';
+
+interface Config {
+    pixelDistance: number;
+}
 
 /**
  * Mouse Action Provider - Handles mouse-based actions
  */
-class MouseActionProvider extends ActionProvider {
-    async execute(config) {
+export class MouseActionProvider extends ActionProvider {
+    async execute(config: Config): Promise<ActionResult> {
         try {
             console.log(`Executing mouse action with ${config.pixelDistance}px distance`);
             const result = await ipcRenderer.invoke('simulate-mouse-movement', config.pixelDistance);
@@ -19,7 +23,7 @@ class MouseActionProvider extends ActionProvider {
                 message: `Mouse movement completed (${config.pixelDistance}px)`,
                 timestamp: new Date().toISOString()
             };
-        } catch (error) {
+        } catch (error: any) {
             return {
                 success: false,
                 message: `Mouse action failed: ${error.message}`,
@@ -28,9 +32,7 @@ class MouseActionProvider extends ActionProvider {
         }
     }
     
-    getName() {
+    getName(): string {
         return 'Mouse Movement';
     }
 }
-
-module.exports = MouseActionProvider;

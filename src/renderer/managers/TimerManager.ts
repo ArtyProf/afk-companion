@@ -1,17 +1,20 @@
 /**
  * Timer Manager - Handles countdown and interval management
  */
-class TimerManager {
-    constructor(onTick, onAction) {
+export class TimerManager {
+    private onTick: () => void;
+    private onAction: () => void;
+    private intervalId: NodeJS.Timeout | null = null;
+    private countdownId: NodeJS.Timeout | null = null;
+    private nextActionTime: number = 0;
+    private interval: number = 60;
+
+    constructor(onTick: () => void, onAction: () => void) {
         this.onTick = onTick;
         this.onAction = onAction;
-        this.intervalId = null;
-        this.countdownId = null;
-        this.nextActionTime = 0;
-        this.interval = 60;
     }
     
-    start(interval) {
+    start(interval: number): void {
         this.interval = interval;
         this.nextActionTime = interval;
         
@@ -33,7 +36,7 @@ class TimerManager {
         }, 1000);
     }
     
-    stop() {
+    stop(): void {
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
@@ -47,15 +50,13 @@ class TimerManager {
         this.nextActionTime = this.interval;
     }
     
-    getNextActionTime() {
+    getNextActionTime(): string {
         const minutes = Math.floor(this.nextActionTime / 60);
         const seconds = this.nextActionTime % 60;
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
     
-    isRunning() {
+    isRunning(): boolean {
         return this.intervalId !== null;
     }
 }
-
-module.exports = TimerManager;

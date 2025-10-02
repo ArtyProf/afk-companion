@@ -1,11 +1,15 @@
-const ActionProvider = require('./ActionProvider');
-const { ipcRenderer } = require('electron');
+import { ActionProvider, ActionResult } from './ActionProvider';
+import { ipcRenderer } from 'electron';
+
+interface Config {
+    pixelDistance: number;
+}
 
 /**
  * Fallback Action Provider - Handles fallback actions when primary fails
  */
-class FallbackActionProvider extends ActionProvider {
-    async execute(config) {
+export class FallbackActionProvider extends ActionProvider {
+    async execute(config: Config): Promise<ActionResult> {
         try {
             // Try window jiggle first
             await ipcRenderer.invoke('jiggle-window');
@@ -31,9 +35,7 @@ class FallbackActionProvider extends ActionProvider {
         }
     }
     
-    getName() {
+    getName(): string {
         return 'Fallback Action';
     }
 }
-
-module.exports = FallbackActionProvider;

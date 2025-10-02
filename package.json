@@ -8,10 +8,10 @@
     "start:dev": "nodemon --exec \"npm run build:ts && electron .\" --watch src --ext ts,js",
     "build:ts": "tsc",
     "build:ts:watch": "tsc --watch",
-    "build": "npm run build:ts && electron-builder",
+    "build": "electron-builder",
     "build:win": "npm run build:ts && electron-builder --win",
     "build:linux": "npm run build:ts && electron-builder --linux",
-    "dist": "npm run build:ts && electron-builder --publish=never",
+    "dist": "electron-builder --publish=never",
     "clean": "rimraf dist-ts",
     "type-check": "tsc --noEmit"
   },
@@ -69,7 +69,11 @@
       "executableName": "afk-companion"
     },
     "files": [
-      "**/*",
+      "dist-ts/**/*",
+      "index.html",
+      "styles.css",
+      "assets/**/*",
+      "package.json",
       "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
       "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
       "!**/node_modules/*.d.ts",
@@ -80,7 +84,10 @@
       "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
       "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
       "!**/{appveyor.yml,.travis.yml,circle.yml}",
-      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+      "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}",
+      "!src/**/*",
+      "!*.ts",
+      "!tsconfig.json"
     ]
   },
   "dependencies": {

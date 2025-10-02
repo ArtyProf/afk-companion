@@ -1,18 +1,24 @@
 // Import required managers and providers directly to avoid circular dependency
-const ConfigurationManager = require('./managers/ConfigurationManager');
-const StatisticsManager = require('./managers/StatisticsManager');
-const TimerManager = require('./managers/TimerManager');
-const UIManager = require('./managers/UIManager');
-const MouseActionProvider = require('./providers/MouseActionProvider');
-const FallbackActionProvider = require('./providers/FallbackActionProvider');
+import { ConfigurationManager } from './managers/ConfigurationManager';
+import { StatisticsManager } from './managers/StatisticsManager';
+import { TimerManager } from './managers/TimerManager';
+import { UIManager } from './managers/UIManager';
+import { MouseActionProvider } from './providers/MouseActionProvider';
+import { FallbackActionProvider } from './providers/FallbackActionProvider';
+import { ActionProvider, ActionResult } from './providers/ActionProvider';
 
 /**
  * Main AFK Companion Controller - Orchestrates all components
  */
-class AFKCompanion {
+export class AFKCompanion {
+    private isActive: boolean = false;
+    private config: ConfigurationManager;
+    private stats: StatisticsManager;
+    private ui: UIManager;
+    private actionProviders: ActionProvider[];
+    private timer: TimerManager;
+
     constructor() {
-        this.isActive = false;
-        
         // Initialize components
         this.config = new ConfigurationManager();
         this.stats = new StatisticsManager();
@@ -33,15 +39,15 @@ class AFKCompanion {
         this.init();
     }
     
-    init() {
+    private init(): void {
         // Initialize UI elements first
         this.ui.initialize();
         
         // Bind UI events
         this.ui.bindEvents({
             onToggle: () => this.toggle(),
-            onIntervalChange: (value) => this.onIntervalChange(value),
-            onPixelDistanceChange: (value) => this.onPixelDistanceChange(value),
+            onIntervalChange: (value: number) => this.onIntervalChange(value),
+            onPixelDistanceChange: (value: number) => this.onPixelDistanceChange(value),
             onWindowFocus: () => this.onWindowFocus()
         });
         
@@ -51,28 +57,28 @@ class AFKCompanion {
         console.log('AFK Companion initialized with modular architecture');
     }
     
-    onIntervalChange(interval) {
+    private onIntervalChange(interval: number): void {
         this.config.set('interval', interval);
         if (this.isActive) {
             this.restart();
         }
     }
     
-    onPixelDistanceChange(distance) {
+    private onPixelDistanceChange(distance: number): void {
         this.config.set('pixelDistance', distance);
     }
     
-    onWindowFocus() {
+    private onWindowFocus(): void {
         this.updateUI();
     }
     
-    onTimerTick() {
+    private onTimerTick(): void {
         this.updateUI();
     }
     
-    async performAction() {
+    private async performAction(): Promise<void> {
         const config = this.config.getAll();
-        let actionResult = null;
+        let actionResult: ActionResult | null = null;
         
         // Try each action provider until one succeeds
         for (const provider of this.actionProviders) {
@@ -81,7 +87,7 @@ class AFKCompanion {
                 if (actionResult.success) {
                     break;
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.log(`${provider.getName()} failed: ${error.message}`);
                 continue;
             }
@@ -95,7 +101,7 @@ class AFKCompanion {
         this.updateUI();
     }
     
-    start() {
+    start(): void {
         if (this.isActive) return;
         
         this.isActive = true;
@@ -108,7 +114,7 @@ class AFKCompanion {
         this.updateUI();
     }
     
-    stop() {
+    stop(): void {
         if (!this.isActive) return;
         
         this.isActive = false;
@@ -118,7 +124,7 @@ class AFKCompanion {
         this.updateUI();
     }
     
-    toggle() {
+    toggle(): void {
         if (this.isActive) {
             this.stop();
         } else {
@@ -126,13 +132,13 @@ class AFKCompanion {
         }
     }
     
-    restart() {
+    private restart(): void {
         console.log('Restarting AFK Companion with new settings');
         this.stop();
         setTimeout(() => this.start(), 100);
     }
     
-    updateUI() {
+    private updateUI(): void {
         // Update status
         this.ui.updateStatus(this.isActive);
         
@@ -145,5 +151,3 @@ class AFKCompanion {
         this.ui.updateCountdown(nextActionTime, this.isActive);
     }
 }
-
-module.exports = AFKCompanion;

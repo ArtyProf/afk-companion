@@ -138,7 +138,19 @@ const createTray = () => {
 
 
 // App event handlers
-app.whenReady().then(createWindow);
+app.whenReady().then(async () => {
+  // Initialize xdotool finder on Linux at startup for better performance
+  if (process.platform === 'linux') {
+    try {
+      await xdotoolFinder.findXdotool();
+      console.log('xdotool path detected:', xdotoolFinder.getXdotoolPath());
+    } catch (error) {
+      console.error('Failed to detect xdotool at startup:', error.message);
+    }
+  }
+  
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   // Don't quit the app when window is closed - keep running in tray

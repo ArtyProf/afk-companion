@@ -26,16 +26,7 @@
     margin-bottom: 30px;
 }
 
-.loading-icon {
-    width: 60px;
-    height: 60px;
-    margin: 0 auto 20px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top: 3px solid white;
-    animation: loadingIconSpin 1s linear infinite;
-}
+
 
 .loading-logo h1 {
     font-size: 2rem;
@@ -88,7 +79,3 @@
     100% { transform: rotate(360deg); }
 }
 
-@keyframes loadingIconSpin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}

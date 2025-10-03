@@ -1,6 +1,6 @@
 import { Tray, Menu, nativeImage, NativeImage } from 'electron';
-import { join } from 'path';
 import { WindowManager } from './WindowManager';
+import { FilePathUtils } from '../utils/FilePathUtils';
 
 /**
  * Tray Manager - Handles system tray functionality
@@ -31,18 +31,21 @@ export class TrayManager {
         let trayIcon: NativeImage;
         
         try {
+            // Get correct paths for both development and packaged app
+            const trayIconPath = FilePathUtils.getAssetPath('tray-icon.png');
+            const mainIconPath = FilePathUtils.getAssetPath('icon.png');
+            
             // First try to load the tray icon from assets
-            const trayIconPath = join(__dirname, '..', '..', '..', 'assets', 'tray-icon.png');
             trayIcon = nativeImage.createFromPath(trayIconPath);
             
             if (trayIcon.isEmpty()) {
                 // If tray icon doesn't exist, try the main icon
-                const mainIconPath = join(__dirname, '..', '..', '..', 'assets', 'icon.png');
                 trayIcon = nativeImage.createFromPath(mainIconPath);
                 
                 // Resize it to appropriate tray size if it's too large
                 if (!trayIcon.isEmpty()) {
                     trayIcon = trayIcon.resize({ width: 16, height: 16 });
+                    console.log('Icon resized for tray');
                 }
             }
         } catch (error) {
@@ -58,7 +61,7 @@ export class TrayManager {
         
         return trayIcon;
     }
-    
+
     private buildContextMenu(): Menu {
         return Menu.buildFromTemplate([
             {

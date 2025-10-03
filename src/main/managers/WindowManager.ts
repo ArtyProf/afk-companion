@@ -23,7 +23,8 @@ export class WindowManager {
             },
             icon: path.join(__dirname, '..', '..', '..', 'assets', 'icon.png'),
             show: false,
-            titleBarStyle: 'default'
+            titleBarStyle: 'default',
+            autoHideMenuBar: true
         };
     }
     

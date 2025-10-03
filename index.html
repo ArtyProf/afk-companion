@@ -14,6 +14,14 @@
         </header>
         
         <main class="content">
+            <!-- Navigation Tabs -->
+            <nav class="tabs">
+                <button id="main-tab" class="tab-btn active">Main</button>
+                <button id="stats-tab" class="tab-btn">Advanced Stats</button>
+            </nav>
+
+            <!-- Main Tab Content -->
+            <div id="main-content" class="tab-content active">
             <div class="status-card">
                 <div class="status-indicator">
                     <div id="status-dot" class="status-dot inactive"></div>
@@ -70,6 +78,37 @@
                         <li><strong>System Tray:</strong> Minimizes to tray for background operation</li>
                         <li><strong>Local Only:</strong> No data sent anywhere</li>
                     </ul>
+                </div>
+            </div>
+            </div>
+
+            <!-- Advanced Stats Tab Content -->
+            <div id="stats-content" class="tab-content">
+                <div class="status-card">
+                    <h2>Advanced Statistics</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="total-sessions">0</div>
+                            <div class="stat-label">Total Sessions</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="total-time">0h</div>
+                            <div class="stat-label">Total Time</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="total-actions">0</div>
+                            <div class="stat-label">Total Actions</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value" id="avg-session-duration">0m</div>
+                            <div class="stat-label">Avg Session Duration</div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <p><strong>Note:</strong> Statistics are stored locally and persist across app restarts.</p>
+                    </div>
                 </div>
             </div>
         </main>

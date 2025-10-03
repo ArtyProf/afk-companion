@@ -18,6 +18,8 @@
             <nav class="tabs">
                 <button id="main-tab" class="tab-btn active">Main</button>
                 <button id="stats-tab" class="tab-btn">Advanced Stats</button>
+                <button id="usecase-tab" class="tab-btn">Use Cases</button>
+                <button id="features-tab" class="tab-btn">Features</button>
             </nav>
 
             <!-- Main Tab Content -->
@@ -111,13 +113,131 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Use Cases Tab Content -->
+            <div id="usecase-content" class="tab-content">
+                <div class="status-card">
+                    <h2>Use Case Scenarios</h2>
+                    
+                    <div class="use-cases-grid">
+                        <div class="use-case-card">
+                            <div class="use-case-icon">Gaming</div>
+                            <h3>Gaming Lobby</h3>
+                            <div class="use-case-details">
+                                <p><strong>Perfect for:</strong> Waiting in game queues, lobby screens</p>
+                                <p><strong>Settings:</strong> 30-60 second intervals</p>
+                                <p><strong>Benefits:</strong> Stay online, avoid auto-disconnect</p>
+                            </div>
+                        </div>
+                        
+                        <div class="use-case-card">
+                            <div class="use-case-icon">Work</div>
+                            <h3>Work Meeting</h3>
+                            <div class="use-case-details">
+                                <p><strong>Perfect for:</strong> Long presentations, training sessions</p>
+                                <p><strong>Settings:</strong> 2-5 minute intervals</p>
+                                <p><strong>Benefits:</strong> Maintain active status, no interruptions</p>
+                            </div>
+                        </div>
+                        
+                        <div class="use-case-card">
+                            <div class="use-case-icon">Stream</div>
+                            <h3>Streaming Setup</h3>
+                            <div class="use-case-details">
+                                <p><strong>Perfect for:</strong> Stream breaks, content preparation</p>
+                                <p><strong>Settings:</strong> 1-2 minute intervals</p>
+                                <p><strong>Benefits:</strong> Prevent screen saver during streams</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>Key Advantages</h3>
+                        <ul class="advantages-list">
+                            <li><strong>Invisible Operation:</strong> Tiny mouse movements that won't interfere</li>
+                            <li><strong>Customizable Timing:</strong> Set intervals that match your specific needs</li>
+                            <li><strong>Universal Compatibility:</strong> Works with any application or system</li>
+                            <li><strong>Resource Efficient:</strong> Minimal impact on system performance</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Features Tab Content -->
+            <div id="features-content" class="tab-content">
+                <div class="status-card">
+                    <h2>System Integration & Features</h2>
+                    
+                    <div class="features-grid">
+                        <div class="feature-section">
+                            <h3>System Tray Integration</h3>
+                            <div class="feature-details">
+                                <p>Minimizes to system tray for background operation</p>
+                                <p>Quick access to start/stop functionality</p>
+                                <p>Unobtrusive presence while active</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-section">
+                            <h3>Cross-Platform Compatibility</h3>
+                            <div class="platform-icons">
+                                <span class="platform-item">Windows</span>
+                                <span class="platform-item">Linux</span>
+                            </div>
+                            <p>Native support across operating systems</p>
+                        </div>
+                        
+                        <div class="feature-section">
+                            <h3>Security & Privacy</h3>
+                            <div class="security-features">
+                                <div class="security-item">✓ Local-only operation</div>
+                                <div class="security-item">✓ No network connections</div>
+                                <div class="security-item">✓ No data collection</div>
+                                <div class="security-item">✓ Open source code</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>Open Source</h3>
+                        <p>AFK Companion is open source and available on GitHub:</p>
+                        <a href="https://github.com/ArtyProf/afk-companion" target="_blank" class="github-link" onclick="openExternalLink(event, 'https://github.com/ArtyProf/afk-companion')">
+                            View Source Code on GitHub
+                        </a>
+                        <p class="github-url">https://github.com/ArtyProf/afk-companion</p>
+                        <p class="github-note">Feel free to contribute, report issues, or fork the project!</p>
+                    </div>
+                </div>
+            </div>
         </main>
         
         <footer>
-            <p>Runs locally - No data sent anywhere</p>
+            <p><a href="https://github.com/ArtyProf/afk-companion" target="_blank" class="footer-link" onclick="openExternalLink(event, 'https://github.com/ArtyProf/afk-companion')">GitHub Repository</a></p>
         </footer>
     </div>
     
     <script src="dist-ts/app.js"></script>
+    <script>
+        // Function to open links in external browser
+        function openExternalLink(event, url) {
+            event.preventDefault();
+            
+            // Check if we're in Electron environment
+            if (typeof require !== 'undefined') {
+                try {
+                    const { ipcRenderer } = require('electron');
+                    ipcRenderer.invoke('open-external', url);
+                    return;
+                } catch (error) {
+                    console.log('IPC not available, falling back to window.open');
+                }
+            }
+            
+            // Fallback for regular browsers
+            window.open(url, '_blank');
+        }
+        
+
+    </script>
 </body>
 </html>

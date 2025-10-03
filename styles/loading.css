@@ -41,6 +41,8 @@
     font-size: 2rem;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     margin: 0;
+    font-weight: bold;
+    letter-spacing: 1px;
 }
 
 .loading-spinner {

@@ -163,7 +163,7 @@ Steam deployment includes both Windows portable executable and Linux packages. �
 
 ## 📄 License
 
-MIT License - Feel free to use and modify. 💻
+GPL-3.0 License - Feel free to use and modify, but keep open source. 💻
 
 ## ⚠️ Disclaimer
 

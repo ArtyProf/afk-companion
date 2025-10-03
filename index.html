@@ -7,7 +7,24 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <div class="loading-icon"></div>
+                <h1>AFK Companion</h1>
+            </div>
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+            </div>
+            <p class="loading-text">Initializing...</p>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="main-app" style="display: none;">
         <header>
             <h1>AFK Companion</h1>
             <p>Keep your status active</p>
@@ -210,11 +227,69 @@
         
         <footer>
             <p><a href="https://github.com/ArtyProf/afk-companion" target="_blank" class="footer-link" onclick="openExternalLink(event, 'https://github.com/ArtyProf/afk-companion')">GitHub Repository</a></p>
+            <div class="copyright">
+                <p>&copy; 2025 Artur Khutak</p>
+                <p>arty4prof@gmail.com</p>
+            </div>
         </footer>
     </div>
     
-    <script src="dist-ts/app.js"></script>
     <script>
+        // Loading screen management
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingScreen = document.getElementById('loading-screen');
+            const mainApp = document.getElementById('main-app');
+            const loadingText = document.querySelector('.loading-text');
+            const progressBar = document.querySelector('.progress-bar');
+            
+            // Loading steps
+            const loadingSteps = [
+                { text: 'Initializing...', progress: 20 },
+                { text: 'Loading components...', progress: 40 },
+                { text: 'Setting up statistics...', progress: 60 },
+                { text: 'Preparing interface...', progress: 80 },
+                { text: 'Ready!', progress: 100 }
+            ];
+            
+            let currentStep = 0;
+            
+            function updateLoadingStep() {
+                if (currentStep < loadingSteps.length) {
+                    const step = loadingSteps[currentStep];
+                    loadingText.textContent = step.text;
+                    progressBar.style.width = step.progress + '%';
+                    currentStep++;
+                    
+                    if (currentStep < loadingSteps.length) {
+                        setTimeout(updateLoadingStep, 1000);
+                    } else {
+                        // Loading complete, show main app
+                        setTimeout(showMainApp, 1000);
+                    }
+                }
+            }
+            
+            function showMainApp() {
+                loadingScreen.style.opacity = '0';
+                loadingScreen.style.transform = 'scale(0.95)';
+                
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    mainApp.style.display = 'flex';
+                    mainApp.style.opacity = '0';
+                    
+                    // Fade in main app
+                    requestAnimationFrame(() => {
+                        mainApp.style.transition = 'opacity 0.5s ease';
+                        mainApp.style.opacity = '1';
+                    });
+                }, 300);
+            }
+            
+            // Start loading sequence
+            setTimeout(updateLoadingStep, 500);
+        });
+        
         // Function to open links in external browser
         function openExternalLink(event, url) {
             event.preventDefault();
@@ -233,8 +308,7 @@
             // Fallback for regular browsers
             window.open(url, '_blank');
         }
-        
-
     </script>
+    <script src="dist-ts/app.js"></script>
 </body>
 </html>

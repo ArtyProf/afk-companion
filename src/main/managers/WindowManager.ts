@@ -12,7 +12,7 @@ export class WindowManager {
     private onClose?: () => void;
 
     constructor() {
-        const iconPath = FilePathUtils.getAssetPath('icon.png');
+        const iconPath = FilePathUtils.getAssetPath('icon.ico');
         this.windowConfig = {
             width: 400,
             height: 500,

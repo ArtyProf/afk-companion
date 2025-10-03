@@ -39,7 +39,7 @@
     "directories": {
       "output": "dist"
     },
-    "icon": "assets/icon.png",
+    "icon": "assets/icon.ico",
     "win": {
       "target": [
         {
@@ -49,7 +49,7 @@
           ]
         }
       ],
-      "icon": "assets/icon.png",
+      "icon": "assets/icon.ico",
       "publisherName": "ArtyProf",
       "signAndEditExecutable": false,
       "sign": null,
@@ -64,7 +64,7 @@
           ]
         }
       ],
-      "icon": "assets/icon.png",
+      "icon": "assets/icon.ico",
       "category": "Utility",
       "executableName": "afk-companion"
     },

@@ -31,22 +31,14 @@ export class TrayManager {
         let trayIcon: NativeImage;
         
         try {
-            // Get correct paths for both development and packaged app
-            const trayIconPath = FilePathUtils.getAssetPath('tray-icon.png');
-            const mainIconPath = FilePathUtils.getAssetPath('icon.png');
+            const iconPath = FilePathUtils.getAssetPath('icon.ico');
             
             // First try to load the tray icon from assets
-            trayIcon = nativeImage.createFromPath(trayIconPath);
-            
+            trayIcon = nativeImage.createFromPath(iconPath);
+
             if (trayIcon.isEmpty()) {
                 // If tray icon doesn't exist, try the main icon
-                trayIcon = nativeImage.createFromPath(mainIconPath);
-                
-                // Resize it to appropriate tray size if it's too large
-                if (!trayIcon.isEmpty()) {
-                    trayIcon = trayIcon.resize({ width: 16, height: 16 });
-                    console.log('Icon resized for tray');
-                }
+                trayIcon = nativeImage.createFromPath(iconPath);
             }
         } catch (error) {
             console.log('Error loading tray icon from assets:', error);

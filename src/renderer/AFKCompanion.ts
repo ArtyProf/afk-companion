@@ -51,10 +51,73 @@ export class AFKCompanion {
             onWindowFocus: () => this.onWindowFocus()
         });
         
+        // Initialize tab functionality
+        this.initializeTabs();
+        
         // Initialize UI state
         this.updateUI();
         
-        console.log('AFK Companion initialized with modular architecture');
+        // Initialize advanced stats display immediately
+        this.updateAdvancedStats();
+    }
+    
+    private initializeTabs(): void {
+        const mainTab = document.getElementById('main-tab');
+        const statsTab = document.getElementById('stats-tab');
+        const mainContent = document.getElementById('main-content');
+        const statsContent = document.getElementById('stats-content');
+        
+        if (mainTab && statsTab && mainContent && statsContent) {
+            mainTab.addEventListener('click', () => {
+                this.switchTab('main', mainTab, statsTab, mainContent, statsContent);
+            });
+            
+            statsTab.addEventListener('click', () => {
+                this.switchTab('stats', mainTab, statsTab, mainContent, statsContent);
+                // Small delay to ensure tab switch completes before updating stats
+                setTimeout(() => {
+                    this.updateAdvancedStats();
+                }, 50);
+            });
+        }
+    }
+    
+    private switchTab(tab: 'main' | 'stats', mainTab: HTMLElement, statsTab: HTMLElement, mainContent: HTMLElement, statsContent: HTMLElement): void {
+        if (tab === 'main') {
+            mainTab.classList.add('active');
+            statsTab.classList.remove('active');
+            mainContent.classList.add('active');
+            statsContent.classList.remove('active');
+        } else {
+            mainTab.classList.remove('active');
+            statsTab.classList.add('active');
+            mainContent.classList.remove('active');
+            statsContent.classList.add('active');
+        }
+    }
+    
+    private updateAdvancedStats(): void {
+        const advancedStats = this.stats.getAdvancedStats();
+        
+        const elements = {
+            totalSessions: document.getElementById('total-sessions'),
+            totalTime: document.getElementById('total-time'),
+            totalActions: document.getElementById('total-actions'),
+            avgSessionDuration: document.getElementById('avg-session-duration')
+        };
+        
+        if (elements.totalSessions) {
+            elements.totalSessions.textContent = advancedStats.totalSessions.toString();
+        }
+        if (elements.totalTime) {
+            elements.totalTime.textContent = advancedStats.totalTime;
+        }
+        if (elements.totalActions) {
+            elements.totalActions.textContent = advancedStats.totalActions.toString();
+        }
+        if (elements.avgSessionDuration) {
+            elements.avgSessionDuration.textContent = advancedStats.avgSessionDuration;
+        }
     }
     
     private onIntervalChange(interval: number): void {
@@ -88,7 +151,6 @@ export class AFKCompanion {
                     break;
                 }
             } catch (error: any) {
-                console.log(`${provider.getName()} failed: ${error.message}`);
                 continue;
             }
         }
@@ -108,8 +170,6 @@ export class AFKCompanion {
         this.stats.start();
         
         const interval = this.config.get('interval');
-        console.log(`Starting AFK Companion with ${interval}s interval`);
-        
         this.timer.start(interval);
         this.updateUI();
     }
@@ -119,8 +179,7 @@ export class AFKCompanion {
         
         this.isActive = false;
         this.timer.stop();
-        
-        console.log('AFK Companion stopped');
+        this.stats.stop();
         this.updateUI();
     }
     
@@ -133,7 +192,6 @@ export class AFKCompanion {
     }
     
     private restart(): void {
-        console.log('Restarting AFK Companion with new settings');
         this.stop();
         setTimeout(() => this.start(), 100);
     }
@@ -145,6 +203,9 @@ export class AFKCompanion {
         // Update statistics
         const stats = this.stats.getStats();
         this.ui.updateStatistics(stats);
+        
+        // Update advanced statistics (for the stats tab)
+        this.updateAdvancedStats();
         
         // Update countdown
         const nextActionTime = this.timer.getNextActionTime();

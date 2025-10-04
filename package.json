@@ -1,6 +1,6 @@
 {
   "name": "afk-companion",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "AFK Companion - Anti-idle utility to prevent being marked as away",
   "main": "dist-ts/main.js",
   "scripts": {
@@ -39,7 +39,7 @@
     "directories": {
       "output": "dist"
     },
-    "icon": "assets/icon.png",
+    "icon": "assets/icon.ico",
     "win": {
       "target": [
         {
@@ -49,7 +49,7 @@
           ]
         }
       ],
-      "icon": "assets/icon.png",
+      "icon": "assets/icon.ico",
       "publisherName": "ArtyProf",
       "signAndEditExecutable": false,
       "sign": null,
@@ -64,14 +64,14 @@
           ]
         }
       ],
-      "icon": "assets/icon.png",
+      "icon": "assets/icon.ico",
       "category": "Utility",
       "executableName": "afk-companion"
     },
     "files": [
       "dist-ts/**/*",
       "index.html",
-      "styles.css",
+      "styles/**/*",
       "assets/**/*",
       "package.json",
       "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",

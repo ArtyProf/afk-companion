@@ -1,4 +1,4 @@
-import { ipcMain, IpcMainInvokeEvent } from 'electron';
+import { ipcMain, IpcMainInvokeEvent, shell } from 'electron';
 import { AutomationService } from '../services/AutomationService';
 import { WindowManager } from '../managers/WindowManager';
 
@@ -68,6 +68,17 @@ export class IPCHandler {
             return null;
         });
         
+        // Open external links in default browser
+        ipcMain.handle('open-external', (event: IpcMainInvokeEvent, url: string) => {
+            try {
+                shell.openExternal(url);
+                return true;
+            } catch (error) {
+                console.error('Error opening external link:', error);
+                return false;
+            }
+        });
+        
         console.log('IPC handlers registered successfully');
     }
     
@@ -99,7 +110,8 @@ export class IPCHandler {
             'get-mouse-position',
             'set-mouse-position',
             'set-animation-config',
-            'get-animation-config'
+            'get-animation-config',
+            'open-external'
         ];
         
         handlers.forEach(handler => {

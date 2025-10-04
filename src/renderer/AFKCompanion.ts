@@ -62,37 +62,67 @@ export class AFKCompanion {
     }
     
     private initializeTabs(): void {
-        const mainTab = document.getElementById('main-tab');
-        const statsTab = document.getElementById('stats-tab');
-        const mainContent = document.getElementById('main-content');
-        const statsContent = document.getElementById('stats-content');
+        const tabs = {
+            main: document.getElementById('main-tab'),
+            stats: document.getElementById('stats-tab'),
+            usecase: document.getElementById('usecase-tab'),
+            features: document.getElementById('features-tab')
+        };
         
-        if (mainTab && statsTab && mainContent && statsContent) {
-            mainTab.addEventListener('click', () => {
-                this.switchTab('main', mainTab, statsTab, mainContent, statsContent);
+        const contents = {
+            main: document.getElementById('main-content'),
+            stats: document.getElementById('stats-content'),
+            usecase: document.getElementById('usecase-content'),
+            features: document.getElementById('features-content')
+        };
+        
+        // Add click listeners for all tabs
+        if (tabs.main) {
+            tabs.main.addEventListener('click', () => {
+                this.switchTab('main', tabs, contents);
             });
-            
-            statsTab.addEventListener('click', () => {
-                this.switchTab('stats', mainTab, statsTab, mainContent, statsContent);
+        }
+        
+        if (tabs.stats) {
+            tabs.stats.addEventListener('click', () => {
+                this.switchTab('stats', tabs, contents);
                 // Small delay to ensure tab switch completes before updating stats
                 setTimeout(() => {
                     this.updateAdvancedStats();
                 }, 50);
             });
         }
+        
+        if (tabs.usecase) {
+            tabs.usecase.addEventListener('click', () => {
+                this.switchTab('usecase', tabs, contents);
+            });
+        }
+        
+        if (tabs.features) {
+            tabs.features.addEventListener('click', () => {
+                this.switchTab('features', tabs, contents);
+            });
+        }
     }
     
-    private switchTab(tab: 'main' | 'stats', mainTab: HTMLElement, statsTab: HTMLElement, mainContent: HTMLElement, statsContent: HTMLElement): void {
-        if (tab === 'main') {
-            mainTab.classList.add('active');
-            statsTab.classList.remove('active');
-            mainContent.classList.add('active');
-            statsContent.classList.remove('active');
-        } else {
-            mainTab.classList.remove('active');
-            statsTab.classList.add('active');
-            mainContent.classList.remove('active');
-            statsContent.classList.add('active');
+    private switchTab(activeTab: 'main' | 'stats' | 'usecase' | 'features', tabs: any, contents: any): void {
+        // Remove active class from all tabs and contents
+        Object.values(tabs).forEach((tab: any) => {
+            if (tab) tab.classList.remove('active');
+        });
+        
+        Object.values(contents).forEach((content: any) => {
+            if (content) content.classList.remove('active');
+        });
+        
+        // Add active class to selected tab and content
+        if (tabs[activeTab]) {
+            tabs[activeTab].classList.add('active');
+        }
+        
+        if (contents[activeTab]) {
+            contents[activeTab].classList.add('active');
         }
     }
     

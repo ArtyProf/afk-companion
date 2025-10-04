@@ -4,10 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AFK Companion</title>
-    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Modular CSS Files -->
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/loading.css">
+    <link rel="stylesheet" href="styles/tabs.css">
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/stats.css">
+    <link rel="stylesheet" href="styles/content.css">
 </head>
 <body>
-    <div class="container">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <h1>AFK Companion</h1>
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+            <p class="loading-text">Initializing...</p>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="main-app" style="display: none;">
         <header>
             <h1>AFK Companion</h1>
             <p>Keep your status active</p>
@@ -18,6 +41,8 @@
             <nav class="tabs">
                 <button id="main-tab" class="tab-btn active">Main</button>
                 <button id="stats-tab" class="tab-btn">Advanced Stats</button>
+                <button id="usecase-tab" class="tab-btn">Use Cases</button>
+                <button id="features-tab" class="tab-btn">Features</button>
             </nav>
 
             <!-- Main Tab Content -->
@@ -111,13 +136,185 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Use Cases Tab Content -->
+            <div id="usecase-content" class="tab-content">
+                <div class="status-card">
+                    <h2>Use Case Scenarios</h2>
+                    
+                    <div class="use-cases-grid">
+                        <div class="use-case-card">
+                            <div class="use-case-icon">Gaming</div>
+                            <h3>Gaming Lobby</h3>
+                            <div class="use-case-details">
+                                <p><strong>Perfect for:</strong> Waiting in game queues, lobby screens</p>
+                                <p><strong>Settings:</strong> 30-60 second intervals</p>
+                                <p><strong>Benefits:</strong> Stay online, avoid auto-disconnect</p>
+                            </div>
+                        </div>
+                        
+                        <div class="use-case-card">
+                            <div class="use-case-icon">Work</div>
+                            <h3>Work Meeting</h3>
+                            <div class="use-case-details">
+                                <p><strong>Perfect for:</strong> Long presentations, training sessions</p>
+                                <p><strong>Settings:</strong> 2-5 minute intervals</p>
+                                <p><strong>Benefits:</strong> Maintain active status, no interruptions</p>
+                            </div>
+                        </div>
+                        
+                        <div class="use-case-card">
+                            <div class="use-case-icon">Stream</div>
+                            <h3>Streaming Setup</h3>
+                            <div class="use-case-details">
+                                <p><strong>Perfect for:</strong> Stream breaks, content preparation</p>
+                                <p><strong>Settings:</strong> 1-2 minute intervals</p>
+                                <p><strong>Benefits:</strong> Prevent screen saver during streams</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>Key Advantages</h3>
+                        <ul class="advantages-list">
+                            <li><strong>Invisible Operation:</strong> Tiny mouse movements that won't interfere</li>
+                            <li><strong>Customizable Timing:</strong> Set intervals that match your specific needs</li>
+                            <li><strong>Universal Compatibility:</strong> Works with any application or system</li>
+                            <li><strong>Resource Efficient:</strong> Minimal impact on system performance</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Features Tab Content -->
+            <div id="features-content" class="tab-content">
+                <div class="status-card">
+                    <h2>System Integration & Features</h2>
+                    
+                    <div class="features-grid">
+                        <div class="feature-section">
+                            <h3>System Tray Integration</h3>
+                            <div class="feature-details">
+                                <p>Minimizes to system tray for background operation</p>
+                                <p>Quick access to start/stop functionality</p>
+                                <p>Unobtrusive presence while active</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-section">
+                            <h3>Cross-Platform Compatibility</h3>
+                            <div class="platform-icons">
+                                <span class="platform-item">Windows</span>
+                                <span class="platform-item">Linux</span>
+                            </div>
+                            <p>Native support across operating systems</p>
+                        </div>
+                        
+                        <div class="feature-section">
+                            <h3>Security & Privacy</h3>
+                            <div class="security-features">
+                                <div class="security-item">✓ Local-only operation</div>
+                                <div class="security-item">✓ No network connections</div>
+                                <div class="security-item">✓ No data collection</div>
+                                <div class="security-item">✓ Open source code</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h3>Open Source</h3>
+                        <p>AFK Companion is open source and available on GitHub:</p>
+                        <p class="github-url">https://github.com/ArtyProf/afk-companion</p>
+                        <p class="github-note">Feel free to contribute, report issues, or fork the project!</p>
+                    </div>
+                </div>
+            </div>
         </main>
         
         <footer>
-            <p>Runs locally - No data sent anywhere</p>
+            <p><a href="https://github.com/ArtyProf/afk-companion" target="_blank" class="footer-link" onclick="openExternalLink(event, 'https://github.com/ArtyProf/afk-companion')">GitHub Repository</a></p>
+            <div class="copyright">
+                <p>&copy; 2025 Artur Khutak</p>
+                <p>arty4prof@gmail.com</p>
+            </div>
         </footer>
     </div>
     
+    <script>
+        // Loading screen management
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingScreen = document.getElementById('loading-screen');
+            const mainApp = document.getElementById('main-app');
+            const loadingText = document.querySelector('.loading-text');
+            const progressBar = document.querySelector('.progress-bar');
+            
+            // Loading steps
+            const loadingSteps = [
+                { text: 'Initializing...', progress: 20 },
+                { text: 'Loading components...', progress: 40 },
+                { text: 'Setting up statistics...', progress: 60 },
+                { text: 'Preparing interface...', progress: 80 },
+                { text: 'Ready!', progress: 100 }
+            ];
+            
+            let currentStep = 0;
+            
+            function updateLoadingStep() {
+                if (currentStep < loadingSteps.length) {
+                    const step = loadingSteps[currentStep];
+                    loadingText.textContent = step.text;
+                    progressBar.style.width = step.progress + '%';
+                    currentStep++;
+                    
+                    if (currentStep < loadingSteps.length) {
+                        setTimeout(updateLoadingStep, 1000);
+                    } else {
+                        // Loading complete, show main app
+                        setTimeout(showMainApp, 1000);
+                    }
+                }
+            }
+            
+            function showMainApp() {
+                loadingScreen.style.opacity = '0';
+                loadingScreen.style.transform = 'scale(0.95)';
+                
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    mainApp.style.display = 'flex';
+                    mainApp.style.opacity = '0';
+                    
+                    // Fade in main app
+                    requestAnimationFrame(() => {
+                        mainApp.style.transition = 'opacity 0.5s ease';
+                        mainApp.style.opacity = '1';
+                    });
+                }, 300);
+            }
+            
+            // Start loading sequence
+            setTimeout(updateLoadingStep, 500);
+        });
+        
+        // Function to open links in external browser
+        function openExternalLink(event, url) {
+            event.preventDefault();
+            
+            // Check if we're in Electron environment
+            if (typeof require !== 'undefined') {
+                try {
+                    const { ipcRenderer } = require('electron');
+                    ipcRenderer.invoke('open-external', url);
+                    return;
+                } catch (error) {
+                    console.log('IPC not available, falling back to window.open');
+                }
+            }
+            
+            // Fallback for regular browsers
+            window.open(url, '_blank');
+        }
+    </script>
     <script src="dist-ts/app.js"></script>
 </body>
 </html>

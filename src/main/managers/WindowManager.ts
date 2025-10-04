@@ -1,5 +1,5 @@
 import { BrowserWindow, BrowserWindowConstructorOptions, Event } from 'electron';
-import * as path from 'path';
+import { FilePathUtils } from '../utils/FilePathUtils';
 
 /**
  * Window Manager - Handles main window creation and lifecycle
@@ -12,6 +12,7 @@ export class WindowManager {
     private onClose?: () => void;
 
     constructor() {
+        const iconPath = FilePathUtils.getAssetPath('icon.ico');
         this.windowConfig = {
             width: 400,
             height: 500,
@@ -21,9 +22,10 @@ export class WindowManager {
                 contextIsolation: false,
                 backgroundThrottling: false
             },
-            icon: path.join(__dirname, '..', '..', '..', 'assets', 'icon.png'),
+            icon: iconPath,
             show: false,
-            titleBarStyle: 'default'
+            titleBarStyle: 'default',
+            autoHideMenuBar: true
         };
     }
     

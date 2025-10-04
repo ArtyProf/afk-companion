@@ -1,4 +1,5 @@
 import { mouse, keyboard, Key } from '@nut-tree-fork/nut-js';
+import { logger } from '../../utils/Logger';
 
 interface Point {
     x: number;
@@ -35,7 +36,7 @@ export class AutomationService {
             const targetX = Math.round(currentPos.x + Math.cos(angle) * pixelDistance);
             const targetY = Math.round(currentPos.y + Math.sin(angle) * pixelDistance);
             
-            console.log(`Moving mouse from (${currentPos.x}, ${currentPos.y}) to (${targetX}, ${targetY})`);
+            logger.debug(`Moving mouse from (${currentPos.x}, ${currentPos.y}) to (${targetX}, ${targetY})`);
             
             // Toggle ScrollLock for system sleep prevention
             await this.toggleScrollLock();
@@ -43,11 +44,11 @@ export class AutomationService {
             // Perform smooth mouse movement
             await this.performSmoothMovement(currentPos, { x: targetX, y: targetY });
             
-            console.log('Universal mouse simulation completed successfully');
+            logger.debug('Universal mouse simulation completed successfully');
             return true;
             
         } catch (error) {
-            console.error('Error simulating smooth mouse movement:', error);
+            logger.error('Error simulating smooth mouse movement:', error);
             return false;
         }
     }
@@ -59,9 +60,9 @@ export class AutomationService {
             await this.delay(10);
             await keyboard.pressKey(Key.ScrollLock);
             await keyboard.releaseKey(Key.ScrollLock);
-            console.log('ScrollLock toggle completed');
+            logger.debug('ScrollLock toggle completed');
         } catch (error: any) {
-            console.log('ScrollLock toggle error:', error.message);
+            logger.warn('ScrollLock toggle error:', error.message);
         }
     }
     
@@ -79,7 +80,7 @@ export class AutomationService {
                     await this.delay(stepDelay);
                 }
             } catch (error: any) {
-                console.log('Movement step error:', error.message);
+                logger.warn('Movement step error:', error.message);
             }
         }
         
@@ -97,7 +98,7 @@ export class AutomationService {
                     await this.delay(stepDelay);
                 }
             } catch (error: any) {
-                console.log('Return movement error:', error.message);
+                logger.warn('Return movement error:', error.message);
             }
         }
     }
@@ -106,17 +107,17 @@ export class AutomationService {
         try {
             return await mouse.getPosition();
         } catch (error) {
-            console.error('Error getting mouse position:', error);
+            logger.error('Error getting mouse position:', error);
             return { x: 0, y: 0 };
         }
     }
-    
+
     async setMousePosition(x: number, y: number): Promise<boolean> {
         try {
             await mouse.setPosition({ x, y });
             return true;
         } catch (error) {
-            console.error('Error setting mouse position:', error);
+            logger.error('Error setting mouse position:', error);
             return false;
         }
     }

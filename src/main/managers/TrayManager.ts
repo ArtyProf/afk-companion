@@ -1,6 +1,7 @@
 import { Tray, Menu, nativeImage, NativeImage } from 'electron';
 import { WindowManager } from './WindowManager';
 import { FilePathUtils } from '../utils/FilePathUtils';
+import { logger } from '../../utils/Logger';
 
 /**
  * Tray Manager - Handles system tray functionality
@@ -41,14 +42,14 @@ export class TrayManager {
                 trayIcon = nativeImage.createFromPath(iconPath);
             }
         } catch (error) {
-            console.log('Error loading tray icon from assets:', error);
+            logger.warn('Error loading tray icon from assets:', error);
             trayIcon = nativeImage.createEmpty();
         }
         
         // Ultimate fallback: create a template icon
         if (!trayIcon || trayIcon.isEmpty()) {
             trayIcon = nativeImage.createEmpty();
-            console.log('Using empty tray icon, system will provide default');
+            logger.info('Using empty tray icon, system will provide default');
         }
         
         return trayIcon;

@@ -1,4 +1,5 @@
 // Import required managers and providers directly to avoid circular dependency
+import { ipcRenderer } from 'electron';
 import { ConfigurationManager } from './managers/ConfigurationManager';
 import { StatisticsManager } from './managers/StatisticsManager';
 import { TimerManager } from './managers/TimerManager';
@@ -188,6 +189,10 @@ export class AFKCompanion {
         // Record the action result
         if (actionResult) {
             this.stats.recordAction(actionResult);
+            
+            // Check Steam achievements based on total actions
+            const totalActions = this.stats.getAdvancedStats().totalActions;
+            ipcRenderer.invoke('achievement-track-action', totalActions);
         }
         
         this.updateUI();

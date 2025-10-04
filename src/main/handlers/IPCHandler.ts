@@ -1,6 +1,8 @@
 import { ipcMain, IpcMainInvokeEvent, shell } from 'electron';
 import { AutomationService } from '../services/AutomationService';
 import { WindowManager } from '../managers/WindowManager';
+import { SteamManager } from '../managers/SteamManager';
+import { logger } from '../../utils/Logger';
 
 /**
  * IPC Handler - Manages Inter-Process Communication between main and renderer
@@ -8,6 +10,7 @@ import { WindowManager } from '../managers/WindowManager';
 export class IPCHandler {
     private automationService: AutomationService | null = null;
     private windowManager: WindowManager | null = null;
+    private steamManager: SteamManager | null = null;
 
     setAutomationService(automationService: AutomationService): void {
         this.automationService = automationService;
@@ -15,6 +18,10 @@ export class IPCHandler {
     
     setWindowManager(windowManager: WindowManager): void {
         this.windowManager = windowManager;
+    }
+
+    setSteamManager(steamManager: SteamManager): void {
+        this.steamManager = steamManager;
     }
     
     registerHandlers(): void {
@@ -74,12 +81,26 @@ export class IPCHandler {
                 shell.openExternal(url);
                 return true;
             } catch (error) {
-                console.error('Error opening external link:', error);
+                logger.error('Error opening external link:', error);
                 return false;
             }
         });
+
+        // Steam Integration
+        ipcMain.handle('steam-is-available', () => {
+            return this.steamManager?.isSteamAvailable() || false;
+        });
+
+        ipcMain.handle('steam-get-username', () => {
+            return this.steamManager?.getSteamUserName() || 'Unknown';
+        });
+
+        // Simple achievement checking
+        ipcMain.handle('achievement-track-action', (event: IpcMainInvokeEvent, totalActions: number) => {
+            this.steamManager?.checkAchievements(totalActions);
+        });
         
-        console.log('IPC handlers registered successfully');
+        logger.info('IPC handlers registered successfully');
     }
     
     private jiggleWindow(): boolean {
@@ -96,7 +117,7 @@ export class IPCHandler {
             }
             return false;
         } catch (error) {
-            console.error('Error jiggling window:', error);
+            logger.error('Error jiggling window:', error);
             return false;
         }
     }
@@ -111,13 +132,16 @@ export class IPCHandler {
             'set-mouse-position',
             'set-animation-config',
             'get-animation-config',
-            'open-external'
+            'open-external',
+            'steam-is-available',
+            'steam-get-username',
+            'achievement-track-action'
         ];
         
         handlers.forEach(handler => {
             ipcMain.removeHandler(handler);
         });
         
-        console.log('IPC handlers unregistered');
+        logger.info('IPC handlers unregistered');
     }
 }

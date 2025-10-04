@@ -1,3 +1,5 @@
+import { logger } from '../../utils/Logger';
+
 interface Settings {
     interval: number; // seconds
     pixelDistance: number; // pixels for mouse movement
@@ -22,7 +24,9 @@ export class ConfigurationManager {
     
     set<K extends keyof Settings>(key: K, value: Settings[K]): void {
         this.settings[key] = value;
-        console.log(`Configuration updated: ${key} = ${value}`);
+        const storageKey = `afk-companion-${key as string}`;
+        localStorage.setItem(storageKey, JSON.stringify(value));
+        logger.debug(`Configuration updated: ${storageKey} = ${value}`);
     }
     
     getAll(): Settings {

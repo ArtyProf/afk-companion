@@ -1,3 +1,5 @@
+import { logger } from '../../utils/Logger';
+
 interface ActionResult {
     success: boolean;
     message: string;
@@ -58,7 +60,7 @@ export class StatisticsManager {
     }
 
     private savePersistentStats(stats: AdvancedStatsDisplay): void {
-        console.log('Saving persistent stats:', stats);
+        logger.debug('Saving persistent stats:', stats);
         localStorage.setItem('afk-persistent-stats', JSON.stringify(stats));
     }
     
@@ -89,8 +91,8 @@ export class StatisticsManager {
         
         this.savePersistentStats(persistentStats);
         
-        console.log(`[${new Date().toLocaleTimeString()}] ${actionResult.message}`);
-        console.log('Updated persistent stats after action:', persistentStats);
+        logger.info(`[${new Date().toLocaleTimeString()}] ${actionResult.message}`);
+        logger.debug('Updated persistent stats after action:', persistentStats);
     }
     
     stop(): void {
@@ -102,7 +104,7 @@ export class StatisticsManager {
             
             this.savePersistentStats(persistentStats);
             
-            console.log(`Session ended. Duration: ${sessionDuration}s`);
+            logger.info(`Session ended. Duration: ${sessionDuration}s`);
         }
         this.sessionStartTime = null;
     }
@@ -121,7 +123,7 @@ export class StatisticsManager {
     
     getAdvancedStats() {
         const persistentStats = this.loadPersistentStats();
-        console.log('Raw persistent stats:', persistentStats);
+        logger.debug('Raw persistent stats:', persistentStats);
         
         // Calculate average session duration
         const avgDurationSeconds = persistentStats.totalSessions > 0 
@@ -135,14 +137,14 @@ export class StatisticsManager {
             avgSessionDuration: this.formatDuration(avgDurationSeconds)
         };
         
-        console.log('Formatted advanced stats:', result);
+        logger.debug('Formatted advanced stats:', result);
         return result;
     }
 
     clearPersistentStats(): void {
         localStorage.removeItem('afk-persistent-stats');
         this.initializePersistentStats();
-        console.log('Persistent stats cleared');
+        logger.info('Persistent stats cleared');
     }
 
     private formatDuration(seconds: number): string {

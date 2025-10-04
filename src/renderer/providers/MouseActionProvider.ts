@@ -1,5 +1,6 @@
 import { ActionProvider, ActionResult } from './ActionProvider';
 import { ipcRenderer } from 'electron';
+import { logger } from '../../utils/Logger';
 
 interface Config {
     pixelDistance: number;
@@ -11,7 +12,7 @@ interface Config {
 export class MouseActionProvider extends ActionProvider {
     async execute(config: Config): Promise<ActionResult> {
         try {
-            console.log(`Executing mouse action with ${config.pixelDistance}px distance`);
+            logger.debug(`Executing mouse action with ${config.pixelDistance}px distance`);
             const result = await ipcRenderer.invoke('simulate-mouse-movement', config.pixelDistance);
             
             if (!result) {

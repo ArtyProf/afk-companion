@@ -2,6 +2,7 @@ import { ipcMain, IpcMainInvokeEvent, shell } from 'electron';
 import { AutomationService } from '../services/AutomationService';
 import { WindowManager } from '../managers/WindowManager';
 import { SteamManager } from '../managers/SteamManager';
+import { logger } from '../../utils/Logger';
 
 /**
  * IPC Handler - Manages Inter-Process Communication between main and renderer
@@ -80,7 +81,7 @@ export class IPCHandler {
                 shell.openExternal(url);
                 return true;
             } catch (error) {
-                console.error('Error opening external link:', error);
+                logger.error('Error opening external link:', error);
                 return false;
             }
         });
@@ -99,7 +100,7 @@ export class IPCHandler {
             this.steamManager?.checkAchievements(totalActions);
         });
         
-        console.log('IPC handlers registered successfully');
+        logger.info('IPC handlers registered successfully');
     }
     
     private jiggleWindow(): boolean {
@@ -116,7 +117,7 @@ export class IPCHandler {
             }
             return false;
         } catch (error) {
-            console.error('Error jiggling window:', error);
+            logger.error('Error jiggling window:', error);
             return false;
         }
     }
@@ -141,6 +142,6 @@ export class IPCHandler {
             ipcMain.removeHandler(handler);
         });
         
-        console.log('IPC handlers unregistered');
+        logger.info('IPC handlers unregistered');
     }
 }

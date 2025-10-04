@@ -5,6 +5,7 @@
   "main": "dist-ts/main.js",
   "scripts": {
     "start": "npm run build:ts && electron .",
+    "start:debug": "npm run build:ts && electron . --enable-logs",
     "start:dev": "nodemon --exec \"npm run build:ts && electron .\" --watch src --ext ts,js",
     "build:ts": "tsc",
     "build:ts:watch": "tsc --watch",

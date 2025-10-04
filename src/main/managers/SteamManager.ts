@@ -1,3 +1,5 @@
+import { logger } from '../../utils/Logger';
+
 /**
  * Steam Manager - Simple Steam integration for achievements
  */
@@ -16,12 +18,12 @@ export class SteamManager {
             if (steamworks.init(2609100)) {
                 this.steamworks = steamworks;
                 this.isInitialized = true;
-                console.log('Steam initialized successfully');
+                logger.info('Steam initialized successfully');
             } else {
-                console.log('Failed to initialize Steam');
+                logger.warn('Failed to initialize Steam');
             }
         } catch (error) {
-            console.log('Steam not available:', error);
+            logger.info('Steam not available:', error);
             this.isInitialized = false;
         }
     }
@@ -32,7 +34,7 @@ export class SteamManager {
      */
     checkAchievements(totalActions: number): void {
         if (!this.isInitialized) {
-            console.log(`Achievement check: ${totalActions} actions (Steam not available)`);
+            logger.debug(`Achievement check: ${totalActions} actions (Steam not available)`);
             return;
         }
 
@@ -47,10 +49,10 @@ export class SteamManager {
                     // Check if already unlocked
                     if (!this.steamworks.achievement.isActivated(achievementName)) {
                         this.steamworks.achievement.activate(achievementName);
-                        console.log(`Achievement unlocked: ${achievementName} at ${totalActions} actions`);
+                        logger.info(`Achievement unlocked: ${achievementName} at ${totalActions} actions`);
                     }
                 } catch (error) {
-                    console.error(`Error unlocking achievement ${achievementName}:`, error);
+                    logger.error(`Error unlocking achievement ${achievementName}:`, error);
                 }
             }
         }

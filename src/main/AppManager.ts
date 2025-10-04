@@ -3,6 +3,7 @@ import { app, BrowserWindow } from 'electron';
 // Import managers and services
 import { WindowManager } from './managers/WindowManager';
 import { TrayManager } from './managers/TrayManager';
+import { SteamManager } from './managers/SteamManager';
 import { AutomationService } from './services/AutomationService';
 import { IPCHandler } from './handlers/IPCHandler';
 
@@ -12,12 +13,14 @@ import { IPCHandler } from './handlers/IPCHandler';
 export class AppManager {
     private windowManager: WindowManager;
     private trayManager: TrayManager;
+    private steamManager: SteamManager;
     private automationService: AutomationService;
     private ipcHandler: IPCHandler;
 
     constructor() {
         this.windowManager = new WindowManager();
         this.trayManager = new TrayManager();
+        this.steamManager = new SteamManager();
         this.automationService = new AutomationService();
         this.ipcHandler = new IPCHandler();
         
@@ -30,6 +33,7 @@ export class AppManager {
         this.trayManager.setWindowManager(this.windowManager);
         this.ipcHandler.setAutomationService(this.automationService);
         this.ipcHandler.setWindowManager(this.windowManager);
+        this.ipcHandler.setSteamManager(this.steamManager);
         
         // Set up event callbacks
         this.windowManager.setOnMinimize(() => this.handleWindowMinimize());

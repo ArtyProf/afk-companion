@@ -1,6 +1,6 @@
 {
   "name": "afk-companion",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "AFK Companion - Anti-idle utility to prevent being marked as away",
   "main": "dist-ts/main.js",
   "scripts": {

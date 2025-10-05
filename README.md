@@ -26,7 +26,7 @@
 
 2. ▶️ **Run the Application**:
    ```bash
-   npm start
+   npm run start
    ```
 
 3. ⚙️ **Configure Settings**:

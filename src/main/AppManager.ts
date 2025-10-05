@@ -3,8 +3,10 @@ import { app, BrowserWindow } from 'electron';
 // Import managers and services
 import { WindowManager } from './managers/WindowManager';
 import { TrayManager } from './managers/TrayManager';
+import { SteamManager } from './managers/SteamManager';
 import { AutomationService } from './services/AutomationService';
 import { IPCHandler } from './handlers/IPCHandler';
+import { logger } from '../utils/Logger';
 
 /**
  * App Manager - Main orchestrator for the Electron application
@@ -12,12 +14,14 @@ import { IPCHandler } from './handlers/IPCHandler';
 export class AppManager {
     private windowManager: WindowManager;
     private trayManager: TrayManager;
+    private steamManager: SteamManager;
     private automationService: AutomationService;
     private ipcHandler: IPCHandler;
 
     constructor() {
         this.windowManager = new WindowManager();
         this.trayManager = new TrayManager();
+        this.steamManager = new SteamManager();
         this.automationService = new AutomationService();
         this.ipcHandler = new IPCHandler();
         
@@ -30,6 +34,7 @@ export class AppManager {
         this.trayManager.setWindowManager(this.windowManager);
         this.ipcHandler.setAutomationService(this.automationService);
         this.ipcHandler.setWindowManager(this.windowManager);
+        this.ipcHandler.setSteamManager(this.steamManager);
         
         // Set up event callbacks
         this.windowManager.setOnMinimize(() => this.handleWindowMinimize());
@@ -60,17 +65,17 @@ export class AppManager {
             // Create main window
             this.windowManager.createWindow();
             
-            console.log('AFK Companion initialized with modular main process architecture');
+            logger.info('AFK Companion initialized with modular main process architecture');
             
         } catch (error) {
-            console.error('Error during app initialization:', error);
+            logger.error('Error during app initialization:', error);
         }
     }
     
     private onWindowAllClosed(): void {
         // Don't quit the app when window is closed - keep running in tray
         // Only quit when explicitly requested through tray menu or app.isQuiting flag
-        console.log('All windows closed - keeping app running in tray');
+        logger.debug('All windows closed - keeping app running in tray');
     }
     
     private onActivate(): void {
@@ -102,7 +107,7 @@ export class AppManager {
         // Clean up resources
         this.ipcHandler.unregisterHandlers();
         this.trayManager.destroy();
-        console.log('App cleanup completed');
+        logger.info('App cleanup completed');
     }
     
     // Getters for external access

@@ -50,8 +50,7 @@ export class WindowManager {
         if (!this.mainWindow) return;
 
         // Handle window minimize to tray
-        this.mainWindow.on('minimize', (event: Event) => {
-            event.preventDefault();
+        this.mainWindow.on('minimize', () => {
             this.mainWindow?.hide();
             this.onMinimize?.();
         });

@@ -1,10 +1,12 @@
 import { logger } from '../../utils/Logger';
+import steamworks from 'steamworks.js';
 
 /**
  * Steam Manager - Simple Steam integration for achievements
  */
 export class SteamManager {
     private steamworks: any = null;
+    private steamClient: any = null;
     private isInitialized: boolean = false;
 
     constructor() {
@@ -13,12 +15,12 @@ export class SteamManager {
 
     private initializeSteam(): void {
         try {
-            const steamworks = require('steamworks.js');
+            this.steamClient = steamworks.init(2609100);
             
-            if (steamworks.init(2609100)) {
+            if (this.steamClient) {
                 this.steamworks = steamworks;
                 this.isInitialized = true;
-                logger.info('Steam initialized successfully');
+                logger.info('Steam initialized successfully with client');
             } else {
                 logger.warn('Failed to initialize Steam');
             }
@@ -28,32 +30,34 @@ export class SteamManager {
         }
     }
 
+    // Achievement thresholds: every 15 actions
+    private static readonly ACHIEVEMENT_THRESHOLDS = [15, 30, 45, 60, 75, 90, 105, 120, 135, 150];
+
     /**
      * Check and unlock achievements based on total actions
-     * This is the ONLY method needed for achievements!
+     * Only triggers when exact threshold is met for efficiency
      */
     checkAchievements(totalActions: number): void {
         if (!this.isInitialized) {
-            logger.debug(`Achievement check: ${totalActions} actions (Steam not available)`);
             return;
         }
 
-        // Achievement thresholds: every 15 actions
-        const thresholds = [15, 30, 45, 60, 75, 90, 105, 120, 135, 150];
+        // Only check if the current action count matches a threshold
+        const thresholdIndex = SteamManager.ACHIEVEMENT_THRESHOLDS.indexOf(totalActions);
         
-        for (let i = 0; i < thresholds.length; i++) {
-            if (totalActions >= thresholds[i]) {
-                const achievementName = `NEW_ACHIEVEMENT_${i}`;
-                
-                try {
-                    // Check if already unlocked
-                    if (!this.steamworks.achievement.isActivated(achievementName)) {
-                        this.steamworks.achievement.activate(achievementName);
-                        logger.info(`Achievement unlocked: ${achievementName} at ${totalActions} actions`);
-                    }
-                } catch (error) {
-                    logger.error(`Error unlocking achievement ${achievementName}:`, error);
+        if (thresholdIndex !== -1) {
+            const achievementName = `NEW_ACHIEVEMENT_${thresholdIndex}`;
+            
+            try {
+                // Use the stored Steam client
+                if (!this.steamClient.achievement.isActivated(achievementName)) {
+                    this.steamClient.achievement.activate(achievementName);
+                    logger.info(`Achievement unlocked: ${achievementName} at ${totalActions} actions!`);
+                } else {
+                    logger.debug(`Achievement ${achievementName} already unlocked`);
                 }
+            } catch (error) {
+                logger.error(`Error unlocking achievement ${achievementName}:`, error);
             }
         }
     }

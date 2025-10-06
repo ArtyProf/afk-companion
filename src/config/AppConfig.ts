@@ -29,7 +29,7 @@ export class AppConfig {
 
     // ==================== TIMER CONFIGURATION ====================
     static readonly TIMER = {
-        DEFAULT_INTERVAL: 30000, // 30 seconds in milliseconds
+        DEFAULT_INTERVAL: 60000, // 60 seconds in milliseconds
         MIN_INTERVAL: 5000,      // 5 seconds
         MAX_INTERVAL: 300000     // 5 minutes
     } as const;

@@ -43,8 +43,6 @@ export class IPCHandler {
         ipcMain.handle('jiggle-window', () => {
             return this.jiggleWindow();
         });
-        
-
 
         // Open external links in default browser
         ipcMain.handle('open-external', (event: IpcMainInvokeEvent, url: string) => {
@@ -56,8 +54,6 @@ export class IPCHandler {
                 return false;
             }
         });
-
-
 
         // Simple achievement checking
         ipcMain.handle('achievement-track-action', (event: IpcMainInvokeEvent, totalActions: number) => {

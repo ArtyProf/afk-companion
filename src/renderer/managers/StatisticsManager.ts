@@ -91,7 +91,7 @@ export class StatisticsManager {
         
         this.savePersistentStats(persistentStats);
         
-        logger.info(`[${new Date().toLocaleTimeString()}] ${actionResult.message}`);
+        logger.info(`Action recorded: ${actionResult.message} - Success: ${actionResult.success}`);
         logger.debug('Updated persistent stats after action:', persistentStats);
     }
     

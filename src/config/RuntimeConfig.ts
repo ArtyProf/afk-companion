@@ -1,8 +1,8 @@
 import { AppConfig } from './AppConfig';
 
 /**
- * Runtime Configuration - For user-configurable settings
- * These can be modified at runtime unlike AppConfig constants
+ * Runtime Configuration - Unified configuration system with persistence
+ * Handles both main process and renderer process configuration needs
  */
 export class RuntimeConfig {
     private static instance: RuntimeConfig;
@@ -14,8 +14,6 @@ export class RuntimeConfig {
     public animationStepDelay: number = AppConfig.ANIMATION.DEFAULT_STEP_DELAY;
     public animationPauseDelay: number = AppConfig.ANIMATION.DEFAULT_PAUSE_DELAY;
     public loggingEnabled: boolean = false;
-
-    private constructor() {}
 
     public static getInstance(): RuntimeConfig {
         if (!RuntimeConfig.instance) {
@@ -51,5 +49,60 @@ export class RuntimeConfig {
         };
     }
 
+    public getInterval(): number {
+        return this.timerInterval / 1000;
+    }
 
+    public setInterval(seconds: number): boolean {
+        const milliseconds = seconds * 1000;
+        if (this.setTimerInterval(milliseconds)) {
+            this.saveToStorage();
+            return true;
+        }
+        return false;
+    }
+
+    public getPixelDistance(): number {
+        return this.mousePixelDistance;
+    }
+
+    public setPixelDistance(distance: number): boolean {
+        if (this.setMousePixelDistance(distance)) {
+            this.saveToStorage();
+            return true;
+        }
+        return false;
+    }
+
+    public getAllSettings(): ConfigurationSettings {
+        return {
+            interval: this.getInterval(),
+            pixelDistance: this.getPixelDistance()
+        };
+    }
+
+    // Debug method to clear storage and reset to defaults
+    public clearStorageAndReset(): void {
+        if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem('afk-companion-interval');
+            localStorage.removeItem('afk-companion-pixelDistance');
+        }
+        
+        // Reset to defaults
+        this.mousePixelDistance = AppConfig.MOUSE.DEFAULT_PIXEL_DISTANCE;
+        this.timerInterval = AppConfig.TIMER.DEFAULT_INTERVAL;       
+    }
+
+    private saveToStorage(): void {
+        if (typeof localStorage === 'undefined') return;
+        
+        localStorage.setItem('afk-companion-interval', JSON.stringify(this.timerInterval / 1000));
+        localStorage.setItem('afk-companion-pixelDistance', JSON.stringify(this.mousePixelDistance));
+    }
+
+}
+
+export interface ConfigurationSettings {
+    interval: number;
+    pixelDistance: number;
 }

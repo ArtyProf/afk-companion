@@ -1,34 +1,27 @@
 import { ipcRenderer } from 'electron';
-import { ConfigurationManager } from './managers/ConfigurationManager';
+import { RuntimeConfig } from '../config';
 import { StatisticsManager } from './managers/StatisticsManager';
 import { TimerManager } from './managers/TimerManager';
 import { UIManager } from './managers/UIManager';
-import { MouseActionProvider } from './providers/MouseActionProvider';
-import { FallbackActionProvider } from './providers/FallbackActionProvider';
-import { ActionProvider, ActionResult } from './providers/ActionProvider';
+import { MouseActionManager, MouseActionResult } from './managers/MouseActionManager';
 
 /**
  * Main AFK Companion Controller - Orchestrates all components
  */
 export class AFKCompanion {
     private isActive: boolean = false;
-    private config: ConfigurationManager;
+    private config: RuntimeConfig;
     private stats: StatisticsManager;
     private ui: UIManager;
-    private actionProviders: ActionProvider[];
+    private mouseActionManager: MouseActionManager;
     private timer: TimerManager;
 
     constructor() {
         // Initialize components
-        this.config = new ConfigurationManager();
+        this.config = RuntimeConfig.getInstance();
         this.stats = new StatisticsManager();
         this.ui = new UIManager();
-        
-        // Initialize action providers
-        this.actionProviders = [
-            new MouseActionProvider(),
-            new FallbackActionProvider()
-        ];
+        this.mouseActionManager = new MouseActionManager();
         
         // Initialize timer
         this.timer = new TimerManager(
@@ -151,14 +144,14 @@ export class AFKCompanion {
     }
     
     private onIntervalChange(interval: number): void {
-        this.config.set('interval', interval);
+        this.config.setInterval(interval);
         if (this.isActive) {
             this.restart();
         }
     }
     
     private onPixelDistanceChange(distance: number): void {
-        this.config.set('pixelDistance', distance);
+        this.config.setPixelDistance(distance);
     }
     
     private onWindowFocus(): void {
@@ -170,29 +163,17 @@ export class AFKCompanion {
     }
     
     private async performAction(): Promise<void> {
-        const config = this.config.getAll();
-        let actionResult: ActionResult | null = null;
+        const config = this.config.getAllSettings();
         
-        // Try each action provider until one succeeds
-        for (const provider of this.actionProviders) {
-            try {
-                actionResult = await provider.execute(config);
-                if (actionResult.success) {
-                    break;
-                }
-            } catch (error: any) {
-                continue;
-            }
-        }
+        // Execute mouse action using the configuration settings directly
+        const actionResult = await this.mouseActionManager.executeMouseAction(config);
         
         // Record the action result
-        if (actionResult) {
-            this.stats.recordAction(actionResult);
-            
-            // Check Steam achievements based on total actions
-            const totalActions = this.stats.getAdvancedStats().totalActions;
-            ipcRenderer.invoke('achievement-track-action', totalActions);
-        }
+        this.stats.recordAction(actionResult);
+        
+        // Check Steam achievements based on total actions
+        const totalActions = this.stats.getAdvancedStats().totalActions;
+        ipcRenderer.invoke('achievement-track-action', totalActions);
         
         this.updateUI();
     }
@@ -203,7 +184,7 @@ export class AFKCompanion {
         this.isActive = true;
         this.stats.start();
         
-        const interval = this.config.get('interval');
+        const interval = this.config.getInterval();
         this.timer.start(interval);
         this.updateUI();
     }

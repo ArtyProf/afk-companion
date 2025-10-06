@@ -1,4 +1,5 @@
 import { logger } from '../../utils/Logger';
+import { AppConfig } from '../../config';
 import steamworks from 'steamworks.js';
 
 /**
@@ -15,12 +16,12 @@ export class SteamManager {
 
     private initializeSteam(): void {
         try {
-            this.steamClient = steamworks.init(2609100);
+            this.steamClient = steamworks.init(AppConfig.STEAM.APP_ID);
             
             if (this.steamClient) {
                 this.steamworks = steamworks;
                 this.isInitialized = true;
-                logger.info('Steam initialized successfully with client');
+                logger.info(`Steam initialized successfully with App ID ${AppConfig.STEAM.APP_ID}`);
             } else {
                 logger.warn('Failed to initialize Steam');
             }
@@ -29,9 +30,6 @@ export class SteamManager {
             this.isInitialized = false;
         }
     }
-
-    // Achievement thresholds: every 15 actions
-    private static readonly ACHIEVEMENT_THRESHOLDS = [15, 30, 45, 60, 75, 90, 105, 120, 135, 150];
 
     /**
      * Check and unlock achievements based on total actions
@@ -43,10 +41,10 @@ export class SteamManager {
         }
 
         // Only check if the current action count matches a threshold
-        const thresholdIndex = SteamManager.ACHIEVEMENT_THRESHOLDS.indexOf(totalActions);
+        const thresholdIndex = (AppConfig.STEAM.ACHIEVEMENT_THRESHOLDS as readonly number[]).indexOf(totalActions);
         
         if (thresholdIndex !== -1) {
-            const achievementName = `NEW_ACHIEVEMENT_${thresholdIndex}`;
+            const achievementName = `${AppConfig.STEAM.ACHIEVEMENT_PREFIX}${thresholdIndex}`;
             
             try {
                 // Use the stored Steam client

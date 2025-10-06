@@ -1,5 +1,6 @@
 import { mouse, keyboard, Key } from '@nut-tree-fork/nut-js';
 import { logger } from '../../utils/Logger';
+import { AppConfig, RuntimeConfig } from '../../config';
 
 interface Point {
     x: number;
@@ -16,17 +17,13 @@ interface AnimationConfig {
  * Automation Service - Handles mouse and keyboard automation
  */
 export class AutomationService {
-    private animationConfig: AnimationConfig;
+    private runtimeConfig: RuntimeConfig;
 
     constructor() {
-        this.animationConfig = {
-            steps: 12,
-            stepDelay: 8,
-            pauseDelay: 80
-        };
+        this.runtimeConfig = RuntimeConfig.getInstance();
     }
     
-    async simulateMouseMovement(pixelDistance: number = 5): Promise<boolean> {
+    async simulateMouseMovement(pixelDistance: number = AppConfig.MOUSE.DEFAULT_PIXEL_DISTANCE): Promise<boolean> {
         try {
             // Get current mouse position using nut-js
             const currentPos = await mouse.getPosition();
@@ -67,7 +64,7 @@ export class AutomationService {
     }
     
     private async performSmoothMovement(startPos: Point, targetPos: Point): Promise<void> {
-        const { steps, stepDelay, pauseDelay } = this.animationConfig;
+        const { steps, stepDelay, pauseDelay } = this.runtimeConfig.getAnimationConfig();
         
         // Smooth movement to target
         for (let i = 1; i <= steps; i++) {
@@ -123,11 +120,14 @@ export class AutomationService {
     }
     
     setAnimationConfig(config: Partial<AnimationConfig>): void {
-        this.animationConfig = { ...this.animationConfig, ...config };
+        this.runtimeConfig.setAnimationConfig({
+            ...this.runtimeConfig.getAnimationConfig(),
+            ...config
+        });
     }
     
     getAnimationConfig(): AnimationConfig {
-        return { ...this.animationConfig };
+        return this.runtimeConfig.getAnimationConfig();
     }
     
     private delay(ms: number): Promise<void> {

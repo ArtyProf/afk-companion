@@ -1,8 +1,9 @@
-import { ipcMain, IpcMainInvokeEvent, shell } from 'electron';
+import { ipcMain, shell, IpcMainInvokeEvent } from 'electron';
 import { AutomationService } from '../services/AutomationService';
 import { WindowManager } from '../managers/WindowManager';
 import { SteamManager } from '../managers/SteamManager';
 import { logger } from '../../utils/Logger';
+import { AppConfig } from '../../config';
 
 /**
  * IPC Handler - Manages Inter-Process Communication between main and renderer
@@ -107,12 +108,12 @@ export class IPCHandler {
         try {
             if (this.windowManager) {
                 const [x, y] = this.windowManager.getWindowPosition();
-                this.windowManager.setWindowPosition(x + 1, y);
+                this.windowManager.setWindowPosition(x + AppConfig.MOUSE.JIGGLE_OFFSET, y);
                 setTimeout(() => {
                     if (this.windowManager) {
                         this.windowManager.setWindowPosition(x, y);
                     }
-                }, 10);
+                }, AppConfig.MOUSE.JIGGLE_DELAY);
                 return true;
             }
             return false;

@@ -6,8 +6,8 @@ export class TimerManager {
     private onAction: () => void;
     private intervalId: NodeJS.Timeout | null = null;
     private countdownId: NodeJS.Timeout | null = null;
-    private nextActionTime: number = 0;
-    private interval: number = 60;
+    private nextActionTimeMs: number = 0; // Track in milliseconds
+    private intervalMs: number = 60000; // Store in milliseconds
 
     constructor(onTick: () => void, onAction: () => void) {
         this.onTick = onTick;
@@ -15,23 +15,21 @@ export class TimerManager {
     }
     
     start(interval: number): void {
-        this.interval = interval;
-        this.nextActionTime = Math.floor(interval / 1000); // Convert milliseconds to seconds for countdown display
+        this.intervalMs = interval;
+        this.nextActionTimeMs = interval;
         
         // Immediate first action
         this.onAction();
         
-        // Set up action interval (interval is already in milliseconds)
+        // Set up action interval
         this.intervalId = setInterval(() => {
             this.onAction();
-            this.nextActionTime = Math.floor(this.interval / 1000); // Reset countdown in seconds
+            this.nextActionTimeMs = this.intervalMs; // Reset countdown
         }, interval);
         
-        // Set up countdown (still counts down in seconds for display)
+        // Set up countdown (decrements every second)
         this.countdownId = setInterval(() => {
-            if (this.nextActionTime > 0) {
-                this.nextActionTime--;
-            }
+            if (this.nextActionTimeMs > 0) this.nextActionTimeMs -= 1000;
             this.onTick();
         }, 1000);
     }
@@ -47,12 +45,13 @@ export class TimerManager {
             this.countdownId = null;
         }
         
-        this.nextActionTime = Math.floor(this.interval / 1000);
+        this.nextActionTimeMs = this.intervalMs;
     }
     
     getNextActionTime(): string {
-        const minutes = Math.floor(this.nextActionTime / 60);
-        const seconds = this.nextActionTime % 60;
+        const totalSeconds = Math.floor(this.nextActionTimeMs / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
     

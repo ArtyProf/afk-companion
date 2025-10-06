@@ -6,7 +6,6 @@ import steamworks from 'steamworks.js';
  * Steam Manager - Simple Steam integration for achievements
  */
 export class SteamManager {
-    private steamworks: any = null;
     private steamClient: any = null;
     private isInitialized: boolean = false;
 
@@ -19,7 +18,6 @@ export class SteamManager {
             this.steamClient = steamworks.init(AppConfig.STEAM.APP_ID);
             
             if (this.steamClient) {
-                this.steamworks = steamworks;
                 this.isInitialized = true;
                 logger.info(`Steam initialized successfully with App ID ${AppConfig.STEAM.APP_ID}`);
             } else {

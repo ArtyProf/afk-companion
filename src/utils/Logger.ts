@@ -13,7 +13,7 @@ export class Logger {
         this.loggingEnabled = process.argv.includes(AppConfig.LOGGING.ENABLE_FLAG);
         
         if (this.loggingEnabled) {
-            console.log(`Logging enabled via ${AppConfig.LOGGING.ENABLE_FLAG} flag`);
+            console.info(`[${AppConfig.LOGGING.LOG_LEVELS.INFO}] Logging enabled via ${AppConfig.LOGGING.ENABLE_FLAG} flag`);
         }
     }
 

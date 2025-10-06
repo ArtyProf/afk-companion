@@ -1,4 +1,3 @@
-// Import required managers and providers directly to avoid circular dependency
 import { ipcRenderer } from 'electron';
 import { ConfigurationManager } from './managers/ConfigurationManager';
 import { StatisticsManager } from './managers/StatisticsManager';

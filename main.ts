@@ -3,7 +3,4 @@
 import { AppManager } from './src/main/AppManager';
 
 // Initialize the application
-const appManager = new AppManager();
-
-// Export for external access if needed
-export default appManager;
+new AppManager();

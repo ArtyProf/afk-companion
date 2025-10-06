@@ -44,38 +44,8 @@ export class IPCHandler {
             return this.jiggleWindow();
         });
         
-        // Mouse position utilities
-        ipcMain.handle('get-mouse-position', async () => {
-            if (this.automationService) {
-                return await this.automationService.getCurrentMousePosition();
-            }
-            return { x: 0, y: 0 };
-        });
-        
-        // Set mouse position
-        ipcMain.handle('set-mouse-position', async (event: IpcMainInvokeEvent, x: number, y: number) => {
-            if (this.automationService) {
-                return await this.automationService.setMousePosition(x, y);
-            }
-            return false;
-        });
-        
-        // Animation configuration
-        ipcMain.handle('set-animation-config', (event: IpcMainInvokeEvent, config: any) => {
-            if (this.automationService) {
-                this.automationService.setAnimationConfig(config);
-                return true;
-            }
-            return false;
-        });
-        
-        ipcMain.handle('get-animation-config', () => {
-            if (this.automationService) {
-                return this.automationService.getAnimationConfig();
-            }
-            return null;
-        });
-        
+
+
         // Open external links in default browser
         ipcMain.handle('open-external', (event: IpcMainInvokeEvent, url: string) => {
             try {
@@ -87,14 +57,7 @@ export class IPCHandler {
             }
         });
 
-        // Steam Integration
-        ipcMain.handle('steam-is-available', () => {
-            return this.steamManager?.isSteamAvailable() || false;
-        });
 
-        ipcMain.handle('steam-get-username', () => {
-            return this.steamManager?.getSteamUserName() || 'Unknown';
-        });
 
         // Simple achievement checking
         ipcMain.handle('achievement-track-action', (event: IpcMainInvokeEvent, totalActions: number) => {
@@ -129,13 +92,7 @@ export class IPCHandler {
             'get-platform',
             'simulate-mouse-movement',
             'jiggle-window',
-            'get-mouse-position',
-            'set-mouse-position',
-            'set-animation-config',
-            'get-animation-config',
             'open-external',
-            'steam-is-available',
-            'steam-get-username',
             'achievement-track-action'
         ];
         

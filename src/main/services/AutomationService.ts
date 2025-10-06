@@ -7,12 +7,6 @@ interface Point {
     y: number;
 }
 
-interface AnimationConfig {
-    steps: number;
-    stepDelay: number;
-    pauseDelay: number;
-}
-
 /**
  * Automation Service - Handles mouse and keyboard automation
  */
@@ -99,37 +93,7 @@ export class AutomationService {
             }
         }
     }
-    
-    async getCurrentMousePosition(): Promise<Point> {
-        try {
-            return await mouse.getPosition();
-        } catch (error) {
-            logger.error('Error getting mouse position:', error);
-            return { x: 0, y: 0 };
-        }
-    }
 
-    async setMousePosition(x: number, y: number): Promise<boolean> {
-        try {
-            await mouse.setPosition({ x, y });
-            return true;
-        } catch (error) {
-            logger.error('Error setting mouse position:', error);
-            return false;
-        }
-    }
-    
-    setAnimationConfig(config: Partial<AnimationConfig>): void {
-        this.runtimeConfig.setAnimationConfig({
-            ...this.runtimeConfig.getAnimationConfig(),
-            ...config
-        });
-    }
-    
-    getAnimationConfig(): AnimationConfig {
-        return this.runtimeConfig.getAnimationConfig();
-    }
-    
     private delay(ms: number): Promise<void> {
         return new Promise(resolve => setTimeout(resolve, ms));
     }

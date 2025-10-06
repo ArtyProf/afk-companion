@@ -109,21 +109,4 @@ export class AppManager {
         this.trayManager.destroy();
         logger.info('App cleanup completed');
     }
-    
-    // Getters for external access
-    getWindowManager(): WindowManager {
-        return this.windowManager;
-    }
-    
-    getTrayManager(): TrayManager {
-        return this.trayManager;
-    }
-    
-    getAutomationService(): AutomationService {
-        return this.automationService;
-    }
-    
-    getIPCHandler(): IPCHandler {
-        return this.ipcHandler;
-    }
 }

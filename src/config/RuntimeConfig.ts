@@ -51,9 +51,5 @@ export class RuntimeConfig {
         };
     }
 
-    public setAnimationConfig(config: { steps: number; stepDelay: number; pauseDelay: number }) {
-        this.animationSteps = config.steps;
-        this.animationStepDelay = config.stepDelay;
-        this.animationPauseDelay = config.pauseDelay;
-    }
+
 }

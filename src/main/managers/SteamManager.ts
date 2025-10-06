@@ -59,25 +59,4 @@ export class SteamManager {
             }
         }
     }
-
-    /**
-     * Check if Steam is available
-     */
-    isSteamAvailable(): boolean {
-        return this.isInitialized;
-    }
-
-    /**
-     * Get Steam username
-     */
-    getSteamUserName(): string {
-        if (!this.isInitialized) return 'Unknown';
-
-        try {
-            return this.steamworks.localplayer.getName() || 'Steam User';
-        } catch (error) {
-            return 'Steam User';
-        }
-    }
-
 }

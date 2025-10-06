@@ -16,18 +16,18 @@ export class TimerManager {
     
     start(interval: number): void {
         this.interval = interval;
-        this.nextActionTime = interval;
+        this.nextActionTime = Math.floor(interval / 1000); // Convert milliseconds to seconds for countdown display
         
         // Immediate first action
         this.onAction();
         
-        // Set up action interval
+        // Set up action interval (interval is already in milliseconds)
         this.intervalId = setInterval(() => {
             this.onAction();
-            this.nextActionTime = this.interval;
-        }, interval * 1000);
+            this.nextActionTime = Math.floor(this.interval / 1000); // Reset countdown in seconds
+        }, interval);
         
-        // Set up countdown
+        // Set up countdown (still counts down in seconds for display)
         this.countdownId = setInterval(() => {
             if (this.nextActionTime > 0) {
                 this.nextActionTime--;
@@ -47,7 +47,7 @@ export class TimerManager {
             this.countdownId = null;
         }
         
-        this.nextActionTime = this.interval;
+        this.nextActionTime = Math.floor(this.interval / 1000);
     }
     
     getNextActionTime(): string {

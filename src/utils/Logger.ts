@@ -1,3 +1,5 @@
+import { AppConfig } from '../config';
+
 /**
  * Logger - Centralized logging system with enable/disable functionality
  * Usage: Pass --enable-logs argument to enable logging
@@ -7,11 +9,11 @@ export class Logger {
     private loggingEnabled: boolean = false;
 
     private constructor() {
-        // Check for --enable-logs argument
-        this.loggingEnabled = process.argv.includes('--enable-logs');
+        // Check for --enable-logs argument using configuration
+        this.loggingEnabled = process.argv.includes(AppConfig.LOGGING.ENABLE_FLAG);
         
         if (this.loggingEnabled) {
-            console.log('Logging enabled via --enable-logs flag');
+            console.info(`[${AppConfig.LOGGING.LOG_LEVELS.INFO}] Logging enabled via ${AppConfig.LOGGING.ENABLE_FLAG} flag`);
         }
     }
 
@@ -24,24 +26,24 @@ export class Logger {
 
     public info(message: string, ...args: any[]): void {
         if (this.loggingEnabled) {
-            console.info(`[INFO] ${message}`, ...args);
+            console.info(`[${AppConfig.LOGGING.LOG_LEVELS.INFO}] ${message}`, ...args);
         }
     }
 
     public warn(message: string, ...args: any[]): void {
         if (this.loggingEnabled) {
-            console.warn(`[WARN] ${message}`, ...args);
+            console.warn(`[${AppConfig.LOGGING.LOG_LEVELS.WARN}] ${message}`, ...args);
         }
     }
 
     public error(message: string, ...args: any[]): void {
         // Always show errors regardless of logging flag
-        console.error(`[ERROR] ${message}`, ...args);
+        console.error(`[${AppConfig.LOGGING.LOG_LEVELS.ERROR}] ${message}`, ...args);
     }
 
     public debug(message: string, ...args: any[]): void {
         if (this.loggingEnabled) {
-            console.debug(`[DEBUG] ${message}`, ...args);
+            console.debug(`[${AppConfig.LOGGING.LOG_LEVELS.DEBUG}] ${message}`, ...args);
         }
     }
 }

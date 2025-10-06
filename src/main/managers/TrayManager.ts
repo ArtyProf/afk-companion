@@ -1,7 +1,8 @@
 import { Tray, Menu, nativeImage, NativeImage } from 'electron';
 import { WindowManager } from './WindowManager';
-import { FilePathUtils } from '../utils/FilePathUtils';
+import { FilePathUtils } from '../../utils/FilePathUtils';
 import { logger } from '../../utils/Logger';
+import { AppConfig } from '../../config';
 
 /**
  * Tray Manager - Handles system tray functionality
@@ -32,7 +33,7 @@ export class TrayManager {
         let trayIcon: NativeImage;
         
         try {
-            const iconPath = FilePathUtils.getAssetPath('icon.ico');
+            const iconPath = FilePathUtils.getAssetPath(AppConfig.PATHS.ICON_FILE);
             
             // First try to load the tray icon from assets
             trayIcon = nativeImage.createFromPath(iconPath);

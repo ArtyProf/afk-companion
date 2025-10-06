@@ -1,32 +1,23 @@
 import { mouse, keyboard, Key } from '@nut-tree-fork/nut-js';
 import { logger } from '../../utils/Logger';
+import { AppConfig, RuntimeConfig } from '../../config';
 
 interface Point {
     x: number;
     y: number;
 }
 
-interface AnimationConfig {
-    steps: number;
-    stepDelay: number;
-    pauseDelay: number;
-}
-
 /**
  * Automation Service - Handles mouse and keyboard automation
  */
 export class AutomationService {
-    private animationConfig: AnimationConfig;
+    private runtimeConfig: RuntimeConfig;
 
     constructor() {
-        this.animationConfig = {
-            steps: 12,
-            stepDelay: 8,
-            pauseDelay: 80
-        };
+        this.runtimeConfig = RuntimeConfig.getInstance();
     }
     
-    async simulateMouseMovement(pixelDistance: number = 5): Promise<boolean> {
+    async simulateMouseMovement(pixelDistance: number = AppConfig.MOUSE.DEFAULT_PIXEL_DISTANCE): Promise<boolean> {
         try {
             // Get current mouse position using nut-js
             const currentPos = await mouse.getPosition();
@@ -67,7 +58,7 @@ export class AutomationService {
     }
     
     private async performSmoothMovement(startPos: Point, targetPos: Point): Promise<void> {
-        const { steps, stepDelay, pauseDelay } = this.animationConfig;
+        const { steps, stepDelay, pauseDelay } = this.runtimeConfig.getAnimationConfig();
         
         // Smooth movement to target
         for (let i = 1; i <= steps; i++) {
@@ -102,34 +93,7 @@ export class AutomationService {
             }
         }
     }
-    
-    async getCurrentMousePosition(): Promise<Point> {
-        try {
-            return await mouse.getPosition();
-        } catch (error) {
-            logger.error('Error getting mouse position:', error);
-            return { x: 0, y: 0 };
-        }
-    }
 
-    async setMousePosition(x: number, y: number): Promise<boolean> {
-        try {
-            await mouse.setPosition({ x, y });
-            return true;
-        } catch (error) {
-            logger.error('Error setting mouse position:', error);
-            return false;
-        }
-    }
-    
-    setAnimationConfig(config: Partial<AnimationConfig>): void {
-        this.animationConfig = { ...this.animationConfig, ...config };
-    }
-    
-    getAnimationConfig(): AnimationConfig {
-        return { ...this.animationConfig };
-    }
-    
     private delay(ms: number): Promise<void> {
         return new Promise(resolve => setTimeout(resolve, ms));
     }

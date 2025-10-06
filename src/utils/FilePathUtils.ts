@@ -1,5 +1,6 @@
 import { app } from 'electron';
 import { join } from 'path';
+import { AppConfig } from '../config';
 
 /**
  * File Path Utilities - Centralized asset file path resolution
@@ -13,6 +14,6 @@ export class FilePathUtils {
      */
     static getAssetPath(fileName: string): string {
         const appPath = app.getAppPath();
-        return join(appPath, 'assets', fileName);
+        return join(appPath, AppConfig.PATHS.ASSETS_FOLDER, fileName);
     }
 }

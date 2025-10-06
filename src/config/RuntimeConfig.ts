@@ -13,7 +13,6 @@ export class RuntimeConfig {
     public animationSteps: number = AppConfig.ANIMATION.DEFAULT_STEPS;
     public animationStepDelay: number = AppConfig.ANIMATION.DEFAULT_STEP_DELAY;
     public animationPauseDelay: number = AppConfig.ANIMATION.DEFAULT_PAUSE_DELAY;
-    public loggingEnabled: boolean = false;
 
     public static getInstance(): RuntimeConfig {
         if (!RuntimeConfig.instance) {
@@ -22,7 +21,6 @@ export class RuntimeConfig {
         return RuntimeConfig.instance;
     }
 
-    // Setter methods
     public setMousePixelDistance(distance: number): void {
         this.mousePixelDistance = distance;
     }
@@ -78,7 +76,6 @@ export class RuntimeConfig {
         localStorage.setItem(AppConfig.STORAGE.KEYS.INTERVAL, JSON.stringify(this.timerInterval));
         localStorage.setItem(AppConfig.STORAGE.KEYS.PIXEL_DISTANCE, JSON.stringify(this.mousePixelDistance));
     }
-
 }
 
 export interface ConfigurationSettings {

@@ -52,6 +52,8 @@ export class AFKCompanion {
         
         // Initialize advanced stats display immediately
         this.updateAdvancedStats();
+
+        this.config.clearStorageAndReset();
     }
     
     private initializeTabs(): void {
@@ -152,6 +154,9 @@ export class AFKCompanion {
     
     private onPixelDistanceChange(distance: number): void {
         this.config.setPixelDistance(distance);
+        if (this.isActive) {
+            this.restart();
+        }
     }
     
     private onWindowFocus(): void {

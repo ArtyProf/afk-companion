@@ -40,11 +40,10 @@ export class RuntimeConfig {
     }
 
     public getInterval(): number {
-        return this.timerInterval / 1000;
+        return this.timerInterval;
     }
 
-    public setInterval(seconds: number): void {
-        const milliseconds = seconds * 1000;
+    public setInterval(milliseconds: number): void {
         this.setTimerInterval(milliseconds);
         this.saveToStorage();
     }
@@ -76,13 +75,13 @@ export class RuntimeConfig {
     }
 
     private saveToStorage(): void {
-        localStorage.setItem(AppConfig.STORAGE.KEYS.INTERVAL, JSON.stringify(this.timerInterval / 1000));
+        localStorage.setItem(AppConfig.STORAGE.KEYS.INTERVAL, JSON.stringify(this.timerInterval));
         localStorage.setItem(AppConfig.STORAGE.KEYS.PIXEL_DISTANCE, JSON.stringify(this.mousePixelDistance));
     }
 
 }
 
 export interface ConfigurationSettings {
-    interval: number;
-    pixelDistance: number;
+    interval: number; // milliseconds - timer interval
+    pixelDistance: number; // pixels - mouse movement distance
 }

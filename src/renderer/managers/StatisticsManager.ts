@@ -1,4 +1,5 @@
 import { logger } from '../../utils/Logger';
+import { AppConfig } from '../../config/AppConfig';
 
 interface ActionResult {
     success: boolean;
@@ -35,19 +36,19 @@ export class StatisticsManager {
     }
 
     private initializePersistentStats(): void {
-        if (!localStorage.getItem('afk-persistent-stats')) {
+        if (!localStorage.getItem(AppConfig.STORAGE.KEYS.PERSISTENT_STATS)) {
             const defaultStats: AdvancedStatsDisplay = {
                 totalSessions: 0,
                 totalTime: 0,
                 totalActions: 0,
                 firstUsed: new Date().toISOString()
             };
-            localStorage.setItem('afk-persistent-stats', JSON.stringify(defaultStats));
+            localStorage.setItem(AppConfig.STORAGE.KEYS.PERSISTENT_STATS, JSON.stringify(defaultStats));
         }
     }
 
     private loadPersistentStats(): AdvancedStatsDisplay {
-        const stored = localStorage.getItem('afk-persistent-stats');
+        const stored = localStorage.getItem(AppConfig.STORAGE.KEYS.PERSISTENT_STATS);
         if (stored) {
             return JSON.parse(stored);
         }
@@ -61,7 +62,7 @@ export class StatisticsManager {
 
     private savePersistentStats(stats: AdvancedStatsDisplay): void {
         logger.debug('Saving persistent stats:', stats);
-        localStorage.setItem('afk-persistent-stats', JSON.stringify(stats));
+        localStorage.setItem(AppConfig.STORAGE.KEYS.PERSISTENT_STATS, JSON.stringify(stats));
     }
     
     reset(): void {
@@ -142,7 +143,7 @@ export class StatisticsManager {
     }
 
     clearPersistentStats(): void {
-        localStorage.removeItem('afk-persistent-stats');
+        localStorage.removeItem(AppConfig.STORAGE.KEYS.PERSISTENT_STATS);
         this.initializePersistentStats();
         logger.info('Persistent stats cleared');
     }

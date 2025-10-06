@@ -45,6 +45,15 @@ export class AppConfig {
         }
     } as const;
 
+    // ==================== STORAGE CONFIGURATION ====================
+    static readonly STORAGE = {
+        KEYS: {
+            INTERVAL: 'afk-companion-interval',
+            PIXEL_DISTANCE: 'afk-companion-pixelDistance',
+            PERSISTENT_STATS: 'afk-persistent-stats'
+        }
+    } as const;
+
     // ==================== FILE PATHS ====================
     static readonly PATHS = {
         ASSETS_FOLDER: 'assets',

@@ -22,23 +22,13 @@ export class RuntimeConfig {
         return RuntimeConfig.instance;
     }
 
-    // Validation methods
-    public setMousePixelDistance(distance: number): boolean {
-        if (distance >= AppConfig.MOUSE.MIN_PIXEL_DISTANCE && 
-            distance <= AppConfig.MOUSE.MAX_PIXEL_DISTANCE) {
-            this.mousePixelDistance = distance;
-            return true;
-        }
-        return false;
+    // Setter methods
+    public setMousePixelDistance(distance: number): void {
+        this.mousePixelDistance = distance;
     }
 
-    public setTimerInterval(interval: number): boolean {
-        if (interval >= AppConfig.TIMER.MIN_INTERVAL && 
-            interval <= AppConfig.TIMER.MAX_INTERVAL) {
-            this.timerInterval = interval;
-            return true;
-        }
-        return false;
+    public setTimerInterval(interval: number): void {
+        this.timerInterval = interval;
     }
 
     public getAnimationConfig() {
@@ -53,25 +43,19 @@ export class RuntimeConfig {
         return this.timerInterval / 1000;
     }
 
-    public setInterval(seconds: number): boolean {
+    public setInterval(seconds: number): void {
         const milliseconds = seconds * 1000;
-        if (this.setTimerInterval(milliseconds)) {
-            this.saveToStorage();
-            return true;
-        }
-        return false;
+        this.setTimerInterval(milliseconds);
+        this.saveToStorage();
     }
 
     public getPixelDistance(): number {
         return this.mousePixelDistance;
     }
 
-    public setPixelDistance(distance: number): boolean {
-        if (this.setMousePixelDistance(distance)) {
-            this.saveToStorage();
-            return true;
-        }
-        return false;
+    public setPixelDistance(distance: number): void {
+        this.setMousePixelDistance(distance);
+        this.saveToStorage();
     }
 
     public getAllSettings(): ConfigurationSettings {
@@ -83,10 +67,8 @@ export class RuntimeConfig {
 
     // Debug method to clear storage and reset to defaults
     public clearStorageAndReset(): void {
-        if (typeof localStorage !== 'undefined') {
-            localStorage.removeItem('afk-companion-interval');
-            localStorage.removeItem('afk-companion-pixelDistance');
-        }
+        localStorage.removeItem(AppConfig.STORAGE.KEYS.INTERVAL);
+        localStorage.removeItem(AppConfig.STORAGE.KEYS.PIXEL_DISTANCE);
         
         // Reset to defaults
         this.mousePixelDistance = AppConfig.MOUSE.DEFAULT_PIXEL_DISTANCE;
@@ -94,10 +76,8 @@ export class RuntimeConfig {
     }
 
     private saveToStorage(): void {
-        if (typeof localStorage === 'undefined') return;
-        
-        localStorage.setItem('afk-companion-interval', JSON.stringify(this.timerInterval / 1000));
-        localStorage.setItem('afk-companion-pixelDistance', JSON.stringify(this.mousePixelDistance));
+        localStorage.setItem(AppConfig.STORAGE.KEYS.INTERVAL, JSON.stringify(this.timerInterval / 1000));
+        localStorage.setItem(AppConfig.STORAGE.KEYS.PIXEL_DISTANCE, JSON.stringify(this.mousePixelDistance));
     }
 
 }

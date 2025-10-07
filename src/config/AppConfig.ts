@@ -57,6 +57,10 @@ export class AppConfig {
     // ==================== FILE PATHS ====================
     static readonly PATHS = {
         ASSETS_FOLDER: 'assets',
-        ICON_FILE: 'icon.ico'
+        ICONS: {
+            WINDOWS: 'icon.ico',
+            LINUX: 'icon.png',
+            MACOS: 'icon.icns'
+        }
     } as const;
 }

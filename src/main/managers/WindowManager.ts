@@ -1,6 +1,5 @@
 import { BrowserWindow, BrowserWindowConstructorOptions, Event } from 'electron';
-import { FilePathUtils } from '../../utils/FilePathUtils';
-import { AppConfig } from '../../config';
+import { IconResolver } from '../../utils/IconResolver';
 
 /**
  * Window Manager - Handles main window creation and lifecycle
@@ -13,7 +12,7 @@ export class WindowManager {
     private onClose?: () => void;
 
     constructor() {
-        const iconPath = FilePathUtils.getAssetPath(AppConfig.PATHS.ICON_FILE);
+        const iconPath = IconResolver.getIconPath();
         this.windowConfig = {
             width: 400,
             height: 500,

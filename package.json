@@ -1,6 +1,6 @@
 {
   "name": "afk-companion",
-  "version": "0.9.1",
+  "version": "1.0.0",
   "description": "AFK Companion - Anti-idle utility to prevent being marked as away",
   "main": "dist-ts/main.js",
   "scripts": {
@@ -65,9 +65,11 @@
           ]
         }
       ],
-      "icon": "assets/icon.ico",
+      "icon": "assets/icon.png",
       "category": "Utility",
-      "executableName": "afk-companion"
+      "executableName": "afk-companion",
+      "synopsis": "Anti-idle utility to prevent being marked as away",
+      "description": "AFK Companion helps prevent your system from going idle during gaming or other activities by simulating mouse movements at specified intervals."
     },
     "files": [
       "dist-ts/**/*",

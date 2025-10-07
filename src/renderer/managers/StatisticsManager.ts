@@ -1,11 +1,6 @@
 import { logger } from '../../utils/Logger';
 import { AppConfig } from '../../config/AppConfig';
-
-interface ActionResult {
-    success: boolean;
-    message: string;
-    timestamp: string;
-}
+import { ActionResult } from './MouseActionManager';
 
 interface Stats {
     actionCount: number;
@@ -18,7 +13,6 @@ interface AdvancedStatsDisplay {
     totalSessions: number;
     totalTime: number;
     totalActions: number;
-    firstUsed: string;
 }
 
 /**
@@ -28,10 +22,8 @@ export class StatisticsManager {
     private actionCount: number = 0;
     private startTime: number | null = null;
     private lastActionTime: number | null = null;
-    private sessionStartTime: number | null = null;
 
     constructor() {
-        this.reset();
         this.initializePersistentStats();
     }
 
@@ -40,8 +32,7 @@ export class StatisticsManager {
             const defaultStats: AdvancedStatsDisplay = {
                 totalSessions: 0,
                 totalTime: 0,
-                totalActions: 0,
-                firstUsed: new Date().toISOString()
+                totalActions: 0
             };
             localStorage.setItem(AppConfig.STORAGE.KEYS.PERSISTENT_STATS, JSON.stringify(defaultStats));
         }
@@ -55,8 +46,7 @@ export class StatisticsManager {
         return {
             totalSessions: 0,
             totalTime: 0,
-            totalActions: 0,
-            firstUsed: new Date().toISOString()
+            totalActions: 0
         };
     }
 
@@ -65,15 +55,8 @@ export class StatisticsManager {
         localStorage.setItem(AppConfig.STORAGE.KEYS.PERSISTENT_STATS, JSON.stringify(stats));
     }
     
-    reset(): void {
-        this.actionCount = 0;
-        this.startTime = null;
-        this.lastActionTime = null;
-    }
-    
     start(): void {
         this.startTime = Date.now();
-        this.sessionStartTime = Date.now();
         this.actionCount = 0;
         
         // Increment total sessions
@@ -89,25 +72,22 @@ export class StatisticsManager {
         // Update persistent stats
         const persistentStats = this.loadPersistentStats();
         persistentStats.totalActions++;
-        
         this.savePersistentStats(persistentStats);
         
-        logger.info(`Action recorded: ${actionResult.message} - Success: ${actionResult.success}`);
-        logger.debug('Updated persistent stats after action:', persistentStats);
+        logger.info(`Action recorded: ${actionResult.message}`);
     }
     
     stop(): void {
-        if (this.sessionStartTime) {
+        if (this.startTime) {
             // Calculate session duration and add to total
-            const sessionDuration = Math.floor((Date.now() - this.sessionStartTime) / 1000);
+            const sessionDuration = Math.floor((Date.now() - this.startTime) / 1000);
             const persistentStats = this.loadPersistentStats();
             persistentStats.totalTime += sessionDuration;
-            
             this.savePersistentStats(persistentStats);
             
             logger.info(`Session ended. Duration: ${sessionDuration}s`);
         }
-        this.sessionStartTime = null;
+        this.startTime = null;
     }
     
     getStats(): Stats {
@@ -124,22 +104,18 @@ export class StatisticsManager {
     
     getAdvancedStats() {
         const persistentStats = this.loadPersistentStats();
-        logger.debug('Raw persistent stats:', persistentStats);
         
         // Calculate average session duration
         const avgDurationSeconds = persistentStats.totalSessions > 0 
             ? persistentStats.totalTime / persistentStats.totalSessions 
             : 0;
         
-        const result = {
+        return {
             totalSessions: persistentStats.totalSessions,
             totalTime: this.formatDuration(persistentStats.totalTime),
             totalActions: persistentStats.totalActions,
             avgSessionDuration: this.formatDuration(avgDurationSeconds)
         };
-        
-        logger.debug('Formatted advanced stats:', result);
-        return result;
     }
 
     clearPersistentStats(): void {

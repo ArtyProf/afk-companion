@@ -3,7 +3,7 @@ import { RuntimeConfig } from '../config';
 import { StatisticsManager } from './managers/StatisticsManager';
 import { TimerManager } from './managers/TimerManager';
 import { UIManager } from './managers/UIManager';
-import { MouseActionManager, MouseActionResult } from './managers/MouseActionManager';
+import { MouseActionManager } from './managers/MouseActionManager';
 
 /**
  * Main AFK Companion Controller - Orchestrates all components

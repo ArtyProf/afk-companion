@@ -31,29 +31,52 @@ export class SteamManager {
 
     /**
      * Check and unlock achievements based on total actions
-     * Only triggers when exact threshold is met for efficiency
+     * Triggers when exact threshold is met or every 200 actions
      */
     checkAchievements(totalActions: number): void {
         if (!this.isInitialized) {
             return;
         }
 
-        // Only check if the current action count matches a threshold
-        const thresholdIndex = (AppConfig.STEAM.ACHIEVEMENT_THRESHOLDS as readonly number[]).indexOf(totalActions);
+        const shouldCheck = this.shouldCheckAchievements(totalActions);
         
-        if (thresholdIndex !== -1) {
-            const achievementName = `${AppConfig.STEAM.ACHIEVEMENT_PREFIX}${thresholdIndex}`;
-            
-            try {
-                // Use the stored Steam client
-                if (!this.steamClient.achievement.isActivated(achievementName)) {
-                    this.steamClient.achievement.activate(achievementName);
-                    logger.info(`Achievement unlocked: ${achievementName} at ${totalActions} actions!`);
-                } else {
-                    logger.debug(`Achievement ${achievementName} already unlocked`);
+        if (shouldCheck) {
+            this.unlockEligibleAchievements(totalActions);
+        }
+    }
+
+    /**
+     * Determine if we should check achievements
+     */
+    private shouldCheckAchievements(totalActions: number): boolean {
+        const isExactThreshold = (AppConfig.STEAM.ACHIEVEMENT_THRESHOLDS as readonly number[]).includes(totalActions);
+        
+        const isDivisibleBy200 = totalActions > 0 && totalActions % 200 === 0;
+        
+        return isExactThreshold || isDivisibleBy200;
+    }
+
+    /**
+     * Unlock all achievements that the user is eligible for
+     * Checks all thresholds up to the current action count
+     */
+    private unlockEligibleAchievements(totalActions: number): void {
+        const thresholds = AppConfig.STEAM.ACHIEVEMENT_THRESHOLDS as readonly number[];
+        
+        for (let i = 0; i < thresholds.length; i++) {
+            const threshold = thresholds[i];
+
+            if (totalActions >= threshold) {
+                const achievementName = `${AppConfig.STEAM.ACHIEVEMENT_PREFIX}${i}`;
+                
+                try {
+                    if (!this.steamClient.achievement.isActivated(achievementName)) {
+                        this.steamClient.achievement.activate(achievementName);
+                        logger.info(`Achievement unlocked: ${achievementName} at ${totalActions} actions (threshold: ${threshold})!`);
+                    }
+                } catch (error) {
+                    logger.error(`Error unlocking achievement ${achievementName}:`, error);
                 }
-            } catch (error) {
-                logger.error(`Error unlocking achievement ${achievementName}:`, error);
             }
         }
     }

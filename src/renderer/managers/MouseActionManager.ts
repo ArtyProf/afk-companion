@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron';
 import { logger } from '../../utils/Logger';
 import { ConfigurationSettings } from '@/config/RuntimeConfig';
 
-export interface MouseActionResult {
+export interface ActionResult {
     success: boolean;
     message: string;
     timestamp: string;
@@ -19,7 +19,7 @@ export class MouseActionManager {
      * @param config Configuration containing pixelDistance
      * @returns Result of the mouse movement execution
      */
-    async executeMouseAction(config: ConfigurationSettings): Promise<MouseActionResult> {
+    async executeMouseAction(config: ConfigurationSettings): Promise<ActionResult> {
         try {
             logger.debug(`Executing mouse movement with ${config.pixelDistance}px distance`);
             const result = await ipcRenderer.invoke('simulate-mouse-movement', config.pixelDistance);

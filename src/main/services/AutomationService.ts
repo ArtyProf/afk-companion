@@ -29,8 +29,8 @@ export class AutomationService {
             
             logger.debug(`Moving mouse from (${currentPos.x}, ${currentPos.y}) to (${targetX}, ${targetY})`);
             
-            // Toggle ScrollLock for system sleep prevention
-            await this.toggleScrollLock();
+            // Toggle key for system sleep prevention (platform-specific)
+            await this.toggleSleepPreventionKey();
             
             // Perform smooth mouse movement
             await this.performSmoothMovement(currentPos, { x: targetX, y: targetY });
@@ -44,16 +44,21 @@ export class AutomationService {
         }
     }
     
-    private async toggleScrollLock(): Promise<void> {
+    private async toggleSleepPreventionKey(): Promise<void> {
         try {
-            await keyboard.pressKey(Key.ScrollLock);
-            await keyboard.releaseKey(Key.ScrollLock);
+            // Use F15 on macOS (non-intrusive, exists on all Macs)
+            // Use ScrollLock on Windows/Linux
+            const keyToToggle = process.platform === 'darwin' ? Key.F15 : Key.ScrollLock;
+            
+            await keyboard.pressKey(keyToToggle);
+            await keyboard.releaseKey(keyToToggle);
             await this.delay(10);
-            await keyboard.pressKey(Key.ScrollLock);
-            await keyboard.releaseKey(Key.ScrollLock);
-            logger.debug('ScrollLock toggle completed');
+            await keyboard.pressKey(keyToToggle);
+            await keyboard.releaseKey(keyToToggle);
+            
+            logger.debug(`Sleep prevention key toggle completed (${process.platform === 'darwin' ? 'F15' : 'ScrollLock'})`);
         } catch (error: any) {
-            logger.warn('ScrollLock toggle error:', error.message);
+            logger.warn('Sleep prevention key toggle error:', error.message);
         }
     }
     

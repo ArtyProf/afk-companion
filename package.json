@@ -1,6 +1,6 @@
 {
   "name": "afk-companion",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "AFK Companion - Anti-idle utility to prevent being marked as away",
   "main": "dist-ts/main.js",
   "scripts": {
@@ -12,6 +12,7 @@
     "build": "electron-builder",
     "build:win": "npm run build:ts && electron-builder --win",
     "build:linux": "npm run build:ts && electron-builder --linux",
+    "build:mac": "npm run build:ts && electron-builder --mac",
     "dist": "electron-builder --publish=never",
     "clean": "rimraf dist-ts",
     "type-check": "tsc --noEmit"
@@ -36,7 +37,7 @@
   },
   "build": {
     "appId": "com.artyprof.afk-companion",
-    "productName": "AFK Companion",
+    "productName": "afk-companion",
     "directories": {
       "output": "dist"
     },
@@ -70,6 +71,36 @@
       "executableName": "afk-companion",
       "synopsis": "Anti-idle utility to prevent being marked as away",
       "description": "AFK Companion helps prevent your system from going idle during gaming or other activities by simulating mouse movements at specified intervals."
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        }
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.utilities",
+      "darkModeSupport": true,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "identity": null,
+      "entitlements": "buildconfig/entitlements.mac.plist",
+      "entitlementsInherit": "buildconfig/entitlements.mac.plist",
+      "artifactName": "afk-companion-${version}-${arch}.${ext}",
+      "executableName": "afk-companion",
+      "extendInfo": {
+        "CFBundleIdentifier": "com.artyprof.afk-companion",
+        "CFBundleName": "AFK Companion",
+        "NSAppleEventsUsageDescription": "AFK Companion needs to simulate mouse and keyboard events to prevent system idle.",
+        "NSAccessibilityUsageDescription": "AFK Companion needs accessibility access to simulate mouse movements and keyboard events.",
+        "LSApplicationCategoryType": "public.app-category.utilities"
+      }
+    },
+    "dmg": {
+      "writeUpdateInfo": false
     },
     "files": [
       "dist-ts/**/*",

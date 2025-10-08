@@ -179,8 +179,58 @@ jobs:
         path: dist/
         retention-days: 1
 
+  build-macos:
+    needs: [check-version, create-tag]
+    runs-on: macos-latest
+    if: needs.check-version.outputs.should-deploy == 'true'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build macOS universal version
+      run: |
+        echo "Building macOS universal executable..."
+        npm run build:mac
+      env:
+        CSC_IDENTITY_AUTO_DISCOVERY: false
+
+    - name: Verify build
+      run: |
+        if [ -d "dist/mac-universal/afk-companion.app" ]; then
+          echo "Build successful: macOS universal app created"
+          ls -la "dist/mac-universal/"
+          echo "App bundle contents:"
+          ls -la "dist/mac-universal/afk-companion.app/Contents/MacOS/"
+        fi
+        if [ -f dist/*.dmg ]; then
+          echo "Build successful: macOS DMG created"
+          ls -la dist/*.dmg
+        fi
+        # Check if at least one macOS build artifact exists
+        if [ ! -d "dist/mac-universal/afk-companion.app" ] && [ ! -f dist/*.dmg ]; then
+          echo "Build failed: No macOS artifacts found"
+          exit 1
+        fi
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-build
+        path: dist/
+        retention-days: 1
+
   deploy:
-    needs: [check-version, build-windows, build-linux]
+    needs: [check-version, build-windows, build-linux, build-macos]
     runs-on: ubuntu-latest
     
     steps:
@@ -212,6 +262,12 @@ jobs:
         name: linux-build
         path: dist-linux/
 
+    - name: Download macOS build
+      uses: actions/download-artifact@v4
+      with:
+        name: macos-build
+        path: dist-macos/
+
     - name: Verify downloaded builds
       run: |
         echo "Verifying builds..."
@@ -219,6 +275,8 @@ jobs:
         ls -la dist-windows/
         echo "Linux build:"
         ls -la dist-linux/
+        echo "macOS build:"
+        ls -la dist-macos/
         
         if [ ! -f dist-windows/afk-companion.exe ]; then
           echo "Windows executable not found!"
@@ -230,12 +288,18 @@ jobs:
           exit 1
         fi
         
+        if [ ! -d "dist-macos/mac-universal/afk-companion.app" ] && [ ! -f dist-macos/*.dmg ]; then
+          echo "macOS app/package not found!"
+          exit 1
+        fi
+        
         echo "All builds verified"
 
     - name: Create Steam build directory
       run: |
         mkdir -p steam-build/windows
         mkdir -p steam-build/linux
+        mkdir -p steam-build/macos
         
         # Copy Windows executable to Steam build
         cp dist-windows/afk-companion.exe steam-build/windows/
@@ -245,9 +309,15 @@ jobs:
           cp -r dist-linux/linux-unpacked/* steam-build/linux/
         fi
         
+        # Copy macOS app bundle to Steam build
+        if [ -d "dist-macos/mac-universal/afk-companion.app" ]; then
+          cp -r "dist-macos/mac-universal/afk-companion.app" steam-build/macos/
+        fi
+        
         echo "Steam build directory created"
         ls -la steam-build/windows/
         ls -la steam-build/linux/
+        ls -la steam-build/macos/
 
     - name: Deploy to Steam
       uses: game-ci/steam-deploy@v3
@@ -255,10 +325,11 @@ jobs:
         username: ${{ secrets.STEAM_USERNAME }}
         configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
         appId: 2609100
-        buildDescription: AFK Companion ${{ steps.version.outputs.version }}
+        buildDescription: AFK Companion ${{ steps.version.outputs.version }} - Universal Build (Windows/Linux/macOS)
         rootPath: steam-build
         depot1Path: windows
         depot2Path: linux
+        depot3Path: macos
 
     - name: Upload build logs
       if: always()
@@ -288,7 +359,11 @@ jobs:
           echo "✅ Linux tar.gz prepared"
         fi
         
-
+        # Copy macOS DMG
+        if [ -f dist-macos/*.dmg ]; then
+          cp dist-macos/*.dmg "release-assets/"
+          echo "✅ macOS DMG prepared"
+        fi
         
         ls -la release-assets/
 
@@ -305,11 +380,13 @@ jobs:
           ### 📥 Downloads
           - **🪟 Windows**: `afk-companion-${{ needs.check-version.outputs.version }}-windows.exe` - Portable executable
           - **📦 Linux Archive**: `afk-companion-${{ needs.check-version.outputs.version }}.tar.gz` - Compressed package (version pattern: afk-companion-X.Y.Z.tar.gz)
+          - **🍎 macOS**: `afk-companion-${{ needs.check-version.outputs.version }}-universal.dmg` - Universal installer (Intel & Apple Silicon)
           
           ### 🚀 Steam Deployment
           - **🆔 App ID**: 2609100
           - **🪟 Windows Depot**: 2609101
           - **🐧 Linux Depot**: 2609102
+          - **🍎 macOS Depot**: 2609103 (Universal Binary)
           
           ### ✨ Features
           - 🎯 Anti-idle utility for gaming and work
@@ -318,12 +395,18 @@ jobs:
           - ⏱️ Customizable intervals and actions
           - 🏠 Local operation with no network requirements
           - 🔧 Safe, non-intrusive actions
+          - 🌍 **Universal macOS support** (Intel & Apple Silicon)
           
           ### 📋 How to Use
           1. Download the appropriate version for your OS
           2. Run the executable (no installation required)
           3. Configure your preferred settings
           4. Click "Start" to prevent AFK/idle status
+          
+          ### 💻 System Requirements
+          - **Windows**: Windows 10+ (x64)
+          - **Linux**: Any modern distribution (x64)
+          - **macOS**: macOS 10.13+ (Universal: Intel & Apple Silicon)
           
           ---
           **Made with Electron** ⚛️ | **Auto-deployed via GitHub Actions** 🤖
@@ -342,8 +425,9 @@ jobs:
           echo "🚀 Steam App ID 2609100 updated:"
           echo "  🪟 Windows depot 2609101: afk-companion.exe"
           echo "  🐧 Linux depot 2609102: Linux packages"
+          echo "  🍎 macOS depot 2609103: Universal app bundle (Intel & Apple Silicon)"
           echo ""
-          echo "✅ Cross-platform build deployed and released"
+          echo "✅ Universal cross-platform build deployed and released"
         else
           echo "❌ Deployment failed!"
           echo "📦 Version: ${{ needs.check-version.outputs.version }}"

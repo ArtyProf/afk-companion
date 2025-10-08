@@ -70,7 +70,7 @@ export class AppManager {
             // Initialize IPC handlers
             this.ipcHandler.registerHandlers();
             
-            // Create tray icon immediately on macOS (menu bar app behavior)
+            // Skip tray on macOS
             if (process.platform === 'darwin') {
                 this.trayManager.createTray();
             }

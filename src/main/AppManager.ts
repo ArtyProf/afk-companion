@@ -15,6 +15,7 @@ export class AppManager {
     private steamManager: SteamManager;
     private automationService: AutomationService;
     private ipcHandler: IPCHandler;
+    private isQuitting: boolean = false;
 
     constructor() {
         this.windowManager = new WindowManager();
@@ -47,6 +48,15 @@ export class AppManager {
         
         app.on('activate', () => this.onActivate());
         
+        // Handle Command+Q and Dock quit on macOS
+        app.on('before-quit', () => {
+            if (process.platform === 'darwin' && !this.isQuitting) {
+                this.isQuitting = true;
+                this.windowManager.setQuiting(true);
+                this.cleanup();
+            }
+        });
+
         // Security: Prevent new window creation
         app.on('web-contents-created', (event, contents) => {
             contents.on('new-window', (navigationEvent) => {
@@ -60,6 +70,11 @@ export class AppManager {
             // Initialize IPC handlers
             this.ipcHandler.registerHandlers();
             
+            // Create tray icon immediately on macOS (menu bar app behavior)
+            if (process.platform === 'darwin') {
+                this.trayManager.createTray();
+            }
+            
             // Create main window
             this.windowManager.createWindow();
             
@@ -71,18 +86,16 @@ export class AppManager {
     }
     
     private onWindowAllClosed(): void {
-        // On macOS, quit when all windows closed (Command+Q, Dock quit)
-        if (process.platform === 'darwin') {
-            this.handleAppQuit();
-            return;
-        }
-        
-        // On other platforms, keep running in tray
+        // Keep app running in tray on all platforms
+        // macOS quit is handled via before-quit event
         logger.debug('All windows closed - keeping app running in tray');
     }
     
     private onActivate(): void {
-        if (BrowserWindow.getAllWindows().length === 0) {
+        // macOS dock icon click - show window if hidden or create if closed
+        if (this.windowManager.getWindow()) {
+            this.windowManager.showWindow();
+        } else if (BrowserWindow.getAllWindows().length === 0) {
             this.windowManager.createWindow();
         }
     }
@@ -100,7 +113,11 @@ export class AppManager {
     }
     
     private handleAppQuit(): void {
-        (app as any).isQuiting = true;
+        if (this.isQuitting) {
+            return; // Prevent recursive calls
+        }
+        
+        this.isQuitting = true;
         this.windowManager.setQuiting(true);
         this.cleanup();
         app.quit();

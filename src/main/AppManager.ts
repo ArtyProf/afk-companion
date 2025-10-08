@@ -70,10 +70,7 @@ export class AppManager {
             // Initialize IPC handlers
             this.ipcHandler.registerHandlers();
             
-            // Skip tray on macOS
-            if (process.platform === 'darwin') {
-                this.trayManager.createTray();
-            }
+            this.trayManager.createTray();
             
             // Create main window
             this.windowManager.createWindow();

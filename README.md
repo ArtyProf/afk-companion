@@ -4,7 +4,7 @@
 
 ## ✨ Features
 
-- 🖥️ **Cross-Platform**: Works on Windows and Linux
+- 🖥️ **Cross-Platform**: Works on Windows, Linux, and macOS
 - 🖱️ **Smooth Mouse Movement**: Realistic, human-like cursor movement with configurable distance
 - 🔐 **ScrollLock Toggle**: Prevents system sleep with invisible ScrollLock key presses
 - ⏱️ **Flexible Intervals**: 5 seconds to 5 minutes for different use cases
@@ -38,9 +38,9 @@
 ## 🔧 How It Works
 
 ### 🌐 **Universal Cross-Platform Solution**
-- 🎯 **nut-js Integration**: Uses modern @nut-tree-fork/nut-js library for all platforms
+- 🎯 **nut-js Integration**: Uses modern @nut-tree-fork/nut-js library for all platforms (Windows, Linux, macOS)
   > **Note**: We use `@nut-tree-fork/nut-js` instead of the original `@nut-tree/nut-js` as the original package is no longer maintained. The fork is actively maintained and provides the same API.
-- 🖱️ **Smooth Mouse Movement**: Native step-by-step interpolation on Windows & Linux
+- 🖱️ **Smooth Mouse Movement**: Native step-by-step interpolation on all platforms
 - 🔐 **ScrollLock Toggle**: Universal key press simulation (on/off) to prevent system sleep
 - 🎮 **Steam Compatible**: Works in Steam environments without PATH restrictions
 - 🔄 **Zero Dependencies**: No external tools required (xdotool, PowerShell scripts eliminated)
@@ -51,7 +51,7 @@
 - 🔄 **Simple & Reliable**: Removed complex background monitoring for stability
 - 🗂️ **System Tray Persistence**: App never quits when window closed
 - ⚡ **Efficient Processing**: Minimal resource usage with native nut-js automation
-- 🎮 **Universal Compatibility**: Works everywhere Node.js runs (Windows, Linux, Steam)
+- 🎮 **Universal Compatibility**: Works everywhere Node.js runs (Windows, Linux, macOS, Steam)
 
 ## 🎯 Movement System
 
@@ -107,6 +107,7 @@ To create distributable builds:
 npm run build        # Build for current platform 🏗️
 npm run build:win    # Build for Windows 🪟
 npm run build:linux  # Build for Linux 🐧
+npm run build:mac    # Build for macOS 🍎
 ```
 
 This creates platform-specific installers in the `dist/` folder. 📁
@@ -117,15 +118,16 @@ The app is configured for Steam deployment with:
 - 🆔 **App ID**: 2609100
 - 🪟 **Windows Depot**: 2609101
 - 🐧 **Linux Depot**: 2609102
+- 🍎 **macOS Depot**: 2609103
 
-Steam deployment includes both Windows portable executable and Linux packages. 🚀
+Steam deployment includes both Windows portable executable, macOs and Linux packages. 🚀
 
 ## 🤝 Contributing
 
 1. 🍴 Fork the repository
 2. 🌿 Create a feature branch
 3. ✨ Make your changes
-4. 🧪 Test on both Windows and Linux
+4. 🧪 Test on Windows, Linux, and macOS
 5. 📥 Submit a pull request
 
 ## � Troubleshooting

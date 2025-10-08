@@ -1,6 +1,4 @@
 import { app, BrowserWindow } from 'electron';
-
-// Import managers and services
 import { WindowManager } from './managers/WindowManager';
 import { TrayManager } from './managers/TrayManager';
 import { SteamManager } from './managers/SteamManager';
@@ -73,8 +71,13 @@ export class AppManager {
     }
     
     private onWindowAllClosed(): void {
-        // Don't quit the app when window is closed - keep running in tray
-        // Only quit when explicitly requested through tray menu or app.isQuiting flag
+        // On macOS, quit when all windows closed (Command+Q, Dock quit)
+        if (process.platform === 'darwin') {
+            this.handleAppQuit();
+            return;
+        }
+        
+        // On other platforms, keep running in tray
         logger.debug('All windows closed - keeping app running in tray');
     }
     

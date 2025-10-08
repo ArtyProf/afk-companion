@@ -12,7 +12,7 @@
     "build": "electron-builder",
     "build:win": "npm run build:ts && electron-builder --win",
     "build:linux": "npm run build:ts && electron-builder --linux",
-    "build:mac": "npm run build:ts && electron-builder --mac --dir",
+    "build:mac": "npm run build:ts && electron-builder --mac",
     "dist": "electron-builder --publish=never",
     "clean": "rimraf dist-ts",
     "type-check": "tsc --noEmit"
@@ -37,7 +37,7 @@
   },
   "build": {
     "appId": "com.artyprof.afk-companion",
-    "productName": "AFK Companion",
+    "productName": "afk-companion",
     "directories": {
       "output": "dist"
     },

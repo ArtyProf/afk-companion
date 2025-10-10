@@ -1,30 +1,40 @@
 import { logger } from '../../utils/Logger';
 import { AppConfig } from '../../config';
-import steamworks from 'steamworks.js';
+import SteamworksSDK from 'steamworks-ffi-node';
 
 /**
- * Steam Manager - Simple Steam integration for achievements
+ * Steam Manager - Simple Steam integration for achievements using steamworks-ffi-node
  */
 export class SteamManager {
-    private steamClient: any = null;
+    private steam: SteamworksSDK;
     private isInitialized: boolean = false;
+    private callbackInterval: NodeJS.Timeout | null = null;
 
     constructor() {
+        this.steam = SteamworksSDK.getInstance();
         this.initializeSteam();
     }
 
     private initializeSteam(): void {
         try {
-            this.steamClient = steamworks.init(AppConfig.STEAM.APP_ID);
+            // Initialize Steam API
+            const success = this.steam.init({ appId: AppConfig.STEAM.APP_ID });
             
-            if (this.steamClient) {
+            if (success) {
                 this.isInitialized = true;
-                logger.info(`Steam initialized successfully with App ID ${AppConfig.STEAM.APP_ID}`);
+                const status = this.steam.getStatus();
+                logger.info(`Steam initialized successfully - App ID: ${status.appId}, Steam ID: ${status.steamId}`);
+                
+                // Start running callbacks periodically (required for Steam API)
+                this.callbackInterval = setInterval(() => {
+                    this.steam.runCallbacks();
+                }, 1000); // Run callbacks every second
+                
             } else {
-                logger.warn('Failed to initialize Steam');
+                logger.warn('Failed to initialize Steam API');
             }
         } catch (error) {
-            logger.info('Steam not available:', error);
+            logger.info('Steam not available (not running under Steam client):', error);
             this.isInitialized = false;
         }
     }
@@ -60,7 +70,7 @@ export class SteamManager {
      * Unlock all achievements that the user is eligible for
      * Checks all thresholds up to the current action count
      */
-    private unlockEligibleAchievements(totalActions: number): void {
+    private async unlockEligibleAchievements(totalActions: number): Promise<void> {
         const thresholds = AppConfig.STEAM.ACHIEVEMENT_THRESHOLDS as readonly number[];
         
         for (let i = 0; i < thresholds.length; i++) {
@@ -70,13 +80,42 @@ export class SteamManager {
                 const achievementName = `${AppConfig.STEAM.ACHIEVEMENT_PREFIX}${i}`;
                 
                 try {
-                    if (!this.steamClient.achievement.isActivated(achievementName)) {
-                        this.steamClient.achievement.activate(achievementName);
-                        logger.info(`Achievement unlocked: ${achievementName} at ${totalActions} actions (threshold: ${threshold})!`);
+                    // Check if achievement is already unlocked
+                    const isUnlocked = await this.steam.isAchievementUnlocked(achievementName);
+                    
+                    if (!isUnlocked) {
+                        // Unlock the achievement
+                        const success = await this.steam.unlockAchievement(achievementName);
+                        
+                        if (success) {
+                            logger.info(`Achievement unlocked: ${achievementName} at ${totalActions} actions (threshold: ${threshold})!`);
+                        } else {
+                            logger.warn(`Failed to unlock achievement: ${achievementName}`);
+                        }
                     }
                 } catch (error) {
                     logger.error(`Error unlocking achievement ${achievementName}:`, error);
                 }
+            }
+        }
+    }
+
+    /**
+     * Shutdown Steam API when app closes
+     */
+    shutdown(): void {
+        if (this.isInitialized) {
+            try {
+                // Stop callback interval
+                if (this.callbackInterval) {
+                    clearInterval(this.callbackInterval);
+                    this.callbackInterval = null;
+                }
+                
+                this.steam.shutdown();
+                logger.info('Steam API shutdown successfully');
+            } catch (error) {
+                logger.error('Error shutting down Steam API:', error);
             }
         }
     }

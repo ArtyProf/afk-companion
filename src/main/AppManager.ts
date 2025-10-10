@@ -122,6 +122,7 @@ export class AppManager {
     
     private cleanup(): void {
         // Clean up resources
+        this.steamManager.shutdown();
         this.ipcHandler.unregisterHandlers();
         this.trayManager.destroy();
         logger.info('App cleanup completed');

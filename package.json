@@ -1,6 +1,6 @@
 {
   "name": "afk-companion",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "AFK Companion - Anti-idle utility to prevent being marked as away",
   "main": "dist-ts/main.js",
   "scripts": {
@@ -126,6 +126,6 @@
   },
   "dependencies": {
     "@nut-tree-fork/nut-js": "^4.2.6",
-    "steamworks.js": "^0.4.0"
+    "steamworks-ffi-node": "^0.1.1"
   }
 }

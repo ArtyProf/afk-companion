@@ -1,3 +1,5 @@
+[![Chat](https://img.shields.io/discord/1426518243077656699?label=chat&logo=discord)](https://discord.gg/Ruzx4Z7cKr)
+
 # 🎮 AFK Companion
 
 ⚡ A cross-platform desktop utility to prevent being marked as idle/AFK in games and applications.

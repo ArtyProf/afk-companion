@@ -32,9 +32,9 @@ export class IPCHandler {
         });
         
         // Mouse movement simulation
-        ipcMain.handle('simulate-mouse-movement', async (event: IpcMainInvokeEvent, pixelDistance: number = 5) => {
+        ipcMain.handle('simulate-mouse-movement', async (event: IpcMainInvokeEvent, pixelDistance: number = 5, keyButton: string = 'none') => {
             if (this.automationService) {
-                return await this.automationService.simulateMouseMovement(pixelDistance);
+                return await this.automationService.simulateMouseMovement(pixelDistance, keyButton);
             }
             return false;
         });

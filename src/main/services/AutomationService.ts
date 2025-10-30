@@ -1,4 +1,4 @@
-import { mouse, keyboard, Key } from '@nut-tree-fork/nut-js';
+import * as robot from '@jitsi/robotjs';
 import { logger } from '../../utils/Logger';
 import { AppConfig, RuntimeConfig } from '../../config';
 
@@ -17,10 +17,10 @@ export class AutomationService {
         this.runtimeConfig = RuntimeConfig.getInstance();
     }
     
-    async simulateMouseMovement(pixelDistance: number = AppConfig.MOUSE.DEFAULT_PIXEL_DISTANCE): Promise<boolean> {
+    async simulateMouseMovement(pixelDistance: number = AppConfig.MOUSE.DEFAULT_PIXEL_DISTANCE, keyButton: string = 'none'): Promise<boolean> {
         try {
-            // Get current mouse position using nut-js
-            const currentPos = await mouse.getPosition();
+            // Get current mouse position using robotjs
+            const currentPos = robot.getMousePos();
             
             // Calculate target position (circular movement for better coverage)
             const angle = Math.random() * Math.PI * 2;
@@ -29,13 +29,18 @@ export class AutomationService {
             
             logger.debug(`Moving mouse from (${currentPos.x}, ${currentPos.y}) to (${targetX}, ${targetY})`);
             
-            // Toggle key for system sleep prevention (platform-specific)
-            await this.toggleSleepPreventionKey();
-            
             // Perform smooth mouse movement
             await this.performSmoothMovement(currentPos, { x: targetX, y: targetY });
             
             logger.debug('Universal mouse simulation completed successfully');
+
+            // Perform additional key press if button is selected
+            if (keyButton !== AppConfig.KEY_BUTTONS.NONE) {
+                await this.performKeyPress(keyButton);
+            } else {
+                logger.info(`[AutomationService] Skipping key press - none selected`);
+            }
+            
             return true;
             
         } catch (error) {
@@ -44,21 +49,43 @@ export class AutomationService {
         }
     }
     
-    private async toggleSleepPreventionKey(): Promise<void> {
+    private async performKeyPress(keyType: string): Promise<void> {
         try {
-            // Use F15 on macOS (non-intrusive, exists on all Macs)
-            // Use ScrollLock on Windows/Linux
-            const keyToToggle = process.platform === 'darwin' ? Key.F15 : Key.ScrollLock;
-            
-            await keyboard.pressKey(keyToToggle);
-            await keyboard.releaseKey(keyToToggle);
+            const key = this.mapKeyButtonToKey(keyType);
+            if (!key) {
+                logger.warn(`Key type '${keyType}' is not supported on macOS with robotjs`);
+                return;
+            }
+            robot.keyTap(key);
+
             await this.delay(10);
-            await keyboard.pressKey(keyToToggle);
-            await keyboard.releaseKey(keyToToggle);
-            
-            logger.debug(`Sleep prevention key toggle completed (${process.platform === 'darwin' ? 'F15' : 'ScrollLock'})`);
+
+            logger.debug(`Keyboard key ${keyType} pressed`);
         } catch (error: any) {
-            logger.warn('Sleep prevention key toggle error:', error.message);
+            logger.error(`Keyboard press error (${keyType}):`, error);
+        }
+    }
+    
+    private mapKeyButtonToKey(keyType: string): string | null {
+        switch (keyType) {
+            case AppConfig.KEY_BUTTONS.F13:
+                return 'f13';
+            case AppConfig.KEY_BUTTONS.F14:
+                return 'f14';
+            case AppConfig.KEY_BUTTONS.F15:
+                return 'f15';
+            case AppConfig.KEY_BUTTONS.F16:
+                return 'f16';
+            case AppConfig.KEY_BUTTONS.F17:
+                return 'f17';
+            case AppConfig.KEY_BUTTONS.F18:
+                return 'f18';
+            case AppConfig.KEY_BUTTONS.F19:
+                return 'f19';
+            case AppConfig.KEY_BUTTONS.F20:
+                return 'f20';
+            default:
+                return null;
         }
     }
     
@@ -71,7 +98,7 @@ export class AutomationService {
             const currentY = Math.round(startPos.y + (targetPos.y - startPos.y) * (i / steps));
             
             try {
-                await mouse.setPosition({ x: currentX, y: currentY });
+                robot.moveMouse(currentX, currentY);
                 if (i < steps) {
                     await this.delay(stepDelay);
                 }
@@ -89,7 +116,7 @@ export class AutomationService {
             const returnY = Math.round(targetPos.y + (startPos.y - targetPos.y) * (i / steps));
             
             try {
-                await mouse.setPosition({ x: returnX, y: returnY });
+                robot.moveMouse(returnX, returnY);
                 if (i < steps) {
                     await this.delay(stepDelay);
                 }

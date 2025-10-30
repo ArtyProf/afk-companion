@@ -27,6 +27,23 @@ export class AppConfig {
         JIGGLE_DELAY: 10
     } as const;
 
+    // ==================== KEYBOARD BUTTON CONFIGURATION ====================
+    static readonly KEY_BUTTONS = {
+        NONE: 'none',
+        SCROLL_LOCK: 'scrolllock',
+        F13: 'f13',
+        F14: 'f14',
+        F15: 'f15',
+        F16: 'f16',
+        F17: 'f17',
+        F18: 'f18',
+        F19: 'f19',
+        F20: 'f20',
+        NUM_LOCK: 'numlock',
+        CAPS_LOCK: 'capslock',
+        PAUSE: 'pause'
+    } as const;
+    
     // ==================== TIMER CONFIGURATION ====================
     static readonly TIMER = {
         DEFAULT_INTERVAL: 60000, // 60 seconds in milliseconds
@@ -50,6 +67,7 @@ export class AppConfig {
         KEYS: {
             INTERVAL: 'afk-companion-interval',
             PIXEL_DISTANCE: 'afk-companion-pixelDistance',
+            KEY_BUTTON: 'afk-companion-keyButton',
             PERSISTENT_STATS: 'afk-persistent-stats'
         }
     } as const;

@@ -41,6 +41,7 @@ export class AFKCompanion {
             onToggle: () => this.toggle(),
             onIntervalChange: (value: number) => this.onIntervalChange(value),
             onPixelDistanceChange: (value: number) => this.onPixelDistanceChange(value),
+            onKeyButtonChange: (value: string) => this.onKeyButtonChange(value),
             onWindowFocus: () => this.onWindowFocus()
         });
         
@@ -154,6 +155,13 @@ export class AFKCompanion {
     
     private onPixelDistanceChange(distance: number): void {
         this.config.setPixelDistance(distance);
+        if (this.isActive) {
+            this.restart();
+        }
+    }
+    
+    private onKeyButtonChange(button: string): void {
+        this.config.setKeyButton(button);
         if (this.isActive) {
             this.restart();
         }

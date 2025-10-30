@@ -75,6 +75,24 @@
                         <input type="number" id="pixel-distance" class="number-input" min="1" max="50" value="5" />
                         <span class="unit-label">pixels</span>
                     </div>
+
+                    <div class="setting-group">
+                        <label for="key-button-select">Additional Key Press:</label>
+                        <select id="key-button-select" class="select-input">
+                            <option value="none" selected>None</option>
+                            <optgroup label="Function Keys">
+                                <option value="f13">F13</option>
+                                <option value="f14">F14</option>
+                                <option value="f15">F15 </option>
+                                <option value="f16">F16</option>
+                                <option value="f17">F17</option>
+                                <option value="f18">F18</option>
+                                <option value="f19">F19</option>
+                                <option value="f20">F20</option>
+                            </optgroup>
+                        </select>
+                        <span class="setting-hint" style="margin-top:6px;display:block;">Adds an extra key press (non-intrusive keys only)</span>
+                    </div>
                 </div>
                 
                 <div class="info-section">
@@ -99,7 +117,8 @@
                     <h3>How it works</h3>
                     <ul class="info-list">
                         <li><strong>Mouse Movement:</strong> Universal cross-platform automation (invisible)</li>
-                        <li><strong>Safe:</strong> Uses minimal system resources with ScrollLock toggle</li>
+                        <li><strong>Key Presses:</strong> Optional function keys or lock keys (F13-F20, ScrollLock, etc.)</li>
+                        <li><strong>Safe:</strong> Uses minimal system resources with non-intrusive keys</li>
                         <li><strong>System Tray:</strong> Minimizes to tray for background operation</li>
                         <li><strong>Local Only:</strong> No data sent anywhere</li>
                     </ul>

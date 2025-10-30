@@ -265,6 +265,14 @@ header p {
     font-weight: 500;
 }
 
+.setting-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: #888;
+    font-style: italic;
+}
+
 .info-section {
     margin-bottom: 20px;
 }

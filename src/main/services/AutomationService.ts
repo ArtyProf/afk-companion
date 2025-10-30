@@ -1,4 +1,4 @@
-import { mouse, keyboard, Key } from '@nut-tree-fork/nut-js';
+import { mouse, keyboard, Key, Button } from '@nut-tree-fork/nut-js';
 import { logger } from '../../utils/Logger';
 import { AppConfig, RuntimeConfig } from '../../config';
 
@@ -29,11 +29,14 @@ export class AutomationService {
             
             logger.debug(`Moving mouse from (${currentPos.x}, ${currentPos.y}) to (${targetX}, ${targetY})`);
             
-            // Toggle key for system sleep prevention (platform-specific)
-            await this.toggleSleepPreventionKey();
-            
             // Perform smooth mouse movement
             await this.performSmoothMovement(currentPos, { x: targetX, y: targetY });
+            
+            // Perform additional key press if button is selected
+            const selectedKey = this.runtimeConfig.getKeyButton();
+            if (selectedKey !== AppConfig.KEY_BUTTONS.NONE) {
+                await this.performKeyPress(selectedKey);
+            }
             
             logger.debug('Universal mouse simulation completed successfully');
             return true;
@@ -44,21 +47,82 @@ export class AutomationService {
         }
     }
     
-    private async toggleSleepPreventionKey(): Promise<void> {
+    private async performKeyPress(keyType: string): Promise<void> {
         try {
-            // Use F15 on macOS (non-intrusive, exists on all Macs)
-            // Use ScrollLock on Windows/Linux
-            const keyToToggle = process.platform === 'darwin' ? Key.F15 : Key.ScrollLock;
+            logger.info(`[performKeyPress] Starting key press for: ${keyType}`);
             
-            await keyboard.pressKey(keyToToggle);
-            await keyboard.releaseKey(keyToToggle);
-            await this.delay(10);
-            await keyboard.pressKey(keyToToggle);
-            await keyboard.releaseKey(keyToToggle);
-            
-            logger.debug(`Sleep prevention key toggle completed (${process.platform === 'darwin' ? 'F15' : 'ScrollLock'})`);
+            const key = this.mapKeyButtonToKey(keyType);
+            if (!key) {
+                logger.warn(`Unknown key type: ${keyType}`);
+                return;
+            }
+
+            logger.info(`[performKeyPress] Mapped to key: ${key}`);
+
+            // Check if this is a toggle key (Caps Lock, Num Lock, Scroll Lock)
+            const isToggleKey = keyType === AppConfig.KEY_BUTTONS.CAPS_LOCK ||
+                                keyType === AppConfig.KEY_BUTTONS.NUM_LOCK ||
+                                keyType === AppConfig.KEY_BUTTONS.SCROLL_LOCK;
+
+            if (isToggleKey) {
+                logger.info(`[performKeyPress] Toggle key detected, performing on/off cycle`);
+                // Toggle keys need longer delays on macOS to register
+                // Press and release to turn ON (with visible LED blink)
+                await keyboard.pressKey(key);
+                logger.info(`[performKeyPress] First press completed`);
+                await this.delay(50); // Longer delay for toggle keys
+                await keyboard.releaseKey(key);
+                logger.info(`[performKeyPress] First release completed`);
+                await this.delay(100); // Allow LED to be visible
+                logger.info(`[performKeyPress] Mid-delay completed, pressing again`);
+                // Press and release again to turn OFF
+                await keyboard.pressKey(key);
+                await this.delay(50);
+                await keyboard.releaseKey(key);
+                logger.info(`[performKeyPress] Second press/release completed`);
+                
+                logger.debug(`Keyboard toggle key ${keyType} pressed (on/off cycle)`);
+            } else {
+                // Normal keys - single press
+                await keyboard.pressKey(key);
+                await this.delay(10);
+                await keyboard.releaseKey(key);
+                
+                logger.debug(`Keyboard key ${keyType} pressed`);
+            }
         } catch (error: any) {
-            logger.warn('Sleep prevention key toggle error:', error.message);
+            logger.error(`Keyboard press error (${keyType}):`, error);
+        }
+    }
+    
+    private mapKeyButtonToKey(keyType: string): Key | null {
+        switch (keyType) {
+            case AppConfig.KEY_BUTTONS.SCROLL_LOCK:
+                return Key.ScrollLock;
+            case AppConfig.KEY_BUTTONS.F13:
+                return Key.F13;
+            case AppConfig.KEY_BUTTONS.F14:
+                return Key.F14;
+            case AppConfig.KEY_BUTTONS.F15:
+                return Key.F15;
+            case AppConfig.KEY_BUTTONS.F16:
+                return Key.F16;
+            case AppConfig.KEY_BUTTONS.F17:
+                return Key.F17;
+            case AppConfig.KEY_BUTTONS.F18:
+                return Key.F18;
+            case AppConfig.KEY_BUTTONS.F19:
+                return Key.F19;
+            case AppConfig.KEY_BUTTONS.F20:
+                return Key.F20;
+            case AppConfig.KEY_BUTTONS.NUM_LOCK:
+                return Key.NumLock;
+            case AppConfig.KEY_BUTTONS.CAPS_LOCK:
+                return Key.CapsLock;
+            case AppConfig.KEY_BUTTONS.PAUSE:
+                return Key.Pause;
+            default:
+                return null;
         }
     }
     

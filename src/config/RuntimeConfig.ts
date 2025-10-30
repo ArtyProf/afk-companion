@@ -9,6 +9,7 @@ export class RuntimeConfig {
     
     // User preferences that can be modified
     public mousePixelDistance: number = AppConfig.MOUSE.DEFAULT_PIXEL_DISTANCE;
+    public keyButton: string = AppConfig.KEY_BUTTONS.NONE;
     public timerInterval: number = AppConfig.TIMER.DEFAULT_INTERVAL;
     public animationSteps: number = AppConfig.ANIMATION.DEFAULT_STEPS;
     public animationStepDelay: number = AppConfig.ANIMATION.DEFAULT_STEP_DELAY;
@@ -55,10 +56,20 @@ export class RuntimeConfig {
         this.saveToStorage();
     }
 
+    public getKeyButton(): string {
+        return this.keyButton;
+    }
+
+    public setKeyButton(button: string): void {
+        this.keyButton = button;
+        this.saveToStorage();
+    }
+
     public getAllSettings(): ConfigurationSettings {
         return {
             interval: this.getInterval(),
-            pixelDistance: this.getPixelDistance()
+            pixelDistance: this.getPixelDistance(),
+            keyButton: this.getKeyButton()
         };
     }
 
@@ -66,19 +77,23 @@ export class RuntimeConfig {
     public clearStorageAndReset(): void {
         localStorage.removeItem(AppConfig.STORAGE.KEYS.INTERVAL);
         localStorage.removeItem(AppConfig.STORAGE.KEYS.PIXEL_DISTANCE);
+        localStorage.removeItem(AppConfig.STORAGE.KEYS.KEY_BUTTON);
         
         // Reset to defaults
         this.mousePixelDistance = AppConfig.MOUSE.DEFAULT_PIXEL_DISTANCE;
+        this.keyButton = AppConfig.KEY_BUTTONS.NONE;
         this.timerInterval = AppConfig.TIMER.DEFAULT_INTERVAL;       
     }
 
     private saveToStorage(): void {
         localStorage.setItem(AppConfig.STORAGE.KEYS.INTERVAL, JSON.stringify(this.timerInterval));
         localStorage.setItem(AppConfig.STORAGE.KEYS.PIXEL_DISTANCE, JSON.stringify(this.mousePixelDistance));
+        localStorage.setItem(AppConfig.STORAGE.KEYS.KEY_BUTTON, JSON.stringify(this.keyButton));
     }
 }
 
 export interface ConfigurationSettings {
     interval: number; // milliseconds - timer interval
     pixelDistance: number; // pixels - mouse movement distance
+    keyButton: string; // keyboard button to press: 'none', 'scrolllock', 'f15', etc.
 }

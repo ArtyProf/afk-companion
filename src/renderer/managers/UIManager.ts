@@ -16,6 +16,7 @@ interface UICallbacks {
     onToggle: () => void;
     onIntervalChange: (value: number) => void;
     onPixelDistanceChange: (value: number) => void;
+    onKeyButtonChange: (value: string) => void;
     onWindowFocus: () => void;
 }
 
@@ -81,6 +82,13 @@ export class UIManager {
         if (pixelDistanceInput) {
             pixelDistanceInput.addEventListener('change', (e) => {
                 callbacks.onPixelDistanceChange(parseInt((e.target as HTMLInputElement).value));
+            });
+        }
+        
+        const keyButtonSelect = document.getElementById('key-button-select') as HTMLSelectElement;
+        if (keyButtonSelect) {
+            keyButtonSelect.addEventListener('change', (e) => {
+                callbacks.onKeyButtonChange((e.target as HTMLSelectElement).value);
             });
         }
         

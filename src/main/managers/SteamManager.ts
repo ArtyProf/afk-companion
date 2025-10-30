@@ -81,11 +81,11 @@ export class SteamManager {
                 
                 try {
                     // Check if achievement is already unlocked
-                    const isUnlocked = await this.steam.isAchievementUnlocked(achievementName);
+                    const isUnlocked = await this.steam.achievements.isAchievementUnlocked(achievementName);
                     
                     if (!isUnlocked) {
                         // Unlock the achievement
-                        const success = await this.steam.unlockAchievement(achievementName);
+                        const success = await this.steam.achievements.unlockAchievement(achievementName);
                         
                         if (success) {
                             logger.info(`Achievement unlocked: ${achievementName} at ${totalActions} actions (threshold: ${threshold})!`);

@@ -32,6 +32,8 @@ export class AutomationService {
             // Perform smooth mouse movement
             await this.performSmoothMovement(currentPos, { x: targetX, y: targetY });
             
+            logger.debug('Universal mouse simulation completed successfully');
+
             // Perform additional key press if button is selected
             if (keyButton !== AppConfig.KEY_BUTTONS.NONE) {
                 await this.performKeyPress(keyButton);
@@ -39,7 +41,6 @@ export class AutomationService {
                 logger.info(`[AutomationService] Skipping key press - none selected`);
             }
             
-            logger.debug('Universal mouse simulation completed successfully');
             return true;
             
         } catch (error) {

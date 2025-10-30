@@ -17,7 +17,7 @@ export class AutomationService {
         this.runtimeConfig = RuntimeConfig.getInstance();
     }
     
-    async simulateMouseMovement(pixelDistance: number = AppConfig.MOUSE.DEFAULT_PIXEL_DISTANCE): Promise<boolean> {
+    async simulateMouseMovement(pixelDistance: number = AppConfig.MOUSE.DEFAULT_PIXEL_DISTANCE, keyButton: string = 'none'): Promise<boolean> {
         try {
             // Get current mouse position using nut-js
             const currentPos = await mouse.getPosition();
@@ -33,9 +33,10 @@ export class AutomationService {
             await this.performSmoothMovement(currentPos, { x: targetX, y: targetY });
             
             // Perform additional key press if button is selected
-            const selectedKey = this.runtimeConfig.getKeyButton();
-            if (selectedKey !== AppConfig.KEY_BUTTONS.NONE) {
-                await this.performKeyPress(selectedKey);
+            if (keyButton !== AppConfig.KEY_BUTTONS.NONE) {
+                await this.performKeyPress(keyButton);
+            } else {
+                logger.info(`[AutomationService] Skipping key press - none selected`);
             }
             
             logger.debug('Universal mouse simulation completed successfully');
@@ -49,15 +50,11 @@ export class AutomationService {
     
     private async performKeyPress(keyType: string): Promise<void> {
         try {
-            logger.info(`[performKeyPress] Starting key press for: ${keyType}`);
-            
             const key = this.mapKeyButtonToKey(keyType);
             if (!key) {
                 logger.warn(`Unknown key type: ${keyType}`);
                 return;
             }
-
-            logger.info(`[performKeyPress] Mapped to key: ${key}`);
 
             // Check if this is a toggle key (Caps Lock, Num Lock, Scroll Lock)
             const isToggleKey = keyType === AppConfig.KEY_BUTTONS.CAPS_LOCK ||
@@ -65,22 +62,17 @@ export class AutomationService {
                                 keyType === AppConfig.KEY_BUTTONS.SCROLL_LOCK;
 
             if (isToggleKey) {
-                logger.info(`[performKeyPress] Toggle key detected, performing on/off cycle`);
                 // Toggle keys need longer delays on macOS to register
                 // Press and release to turn ON (with visible LED blink)
                 await keyboard.pressKey(key);
-                logger.info(`[performKeyPress] First press completed`);
                 await this.delay(50); // Longer delay for toggle keys
                 await keyboard.releaseKey(key);
-                logger.info(`[performKeyPress] First release completed`);
                 await this.delay(100); // Allow LED to be visible
-                logger.info(`[performKeyPress] Mid-delay completed, pressing again`);
+
                 // Press and release again to turn OFF
                 await keyboard.pressKey(key);
                 await this.delay(50);
-                await keyboard.releaseKey(key);
-                logger.info(`[performKeyPress] Second press/release completed`);
-                
+                await keyboard.releaseKey(key);                
                 logger.debug(`Keyboard toggle key ${keyType} pressed (on/off cycle)`);
             } else {
                 // Normal keys - single press

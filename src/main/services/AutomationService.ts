@@ -1,4 +1,4 @@
-import { mouse, keyboard, Key, Button } from '@nut-tree-fork/nut-js';
+import * as robot from '@jitsi/robotjs';
 import { logger } from '../../utils/Logger';
 import { AppConfig, RuntimeConfig } from '../../config';
 
@@ -19,8 +19,8 @@ export class AutomationService {
     
     async simulateMouseMovement(pixelDistance: number = AppConfig.MOUSE.DEFAULT_PIXEL_DISTANCE, keyButton: string = 'none'): Promise<boolean> {
         try {
-            // Get current mouse position using nut-js
-            const currentPos = await mouse.getPosition();
+            // Get current mouse position using robotjs
+            const currentPos = robot.getMousePos();
             
             // Calculate target position (circular movement for better coverage)
             const angle = Math.random() * Math.PI * 2;
@@ -53,67 +53,37 @@ export class AutomationService {
         try {
             const key = this.mapKeyButtonToKey(keyType);
             if (!key) {
-                logger.warn(`Unknown key type: ${keyType}`);
+                logger.warn(`Key type '${keyType}' is not supported on macOS with robotjs`);
                 return;
             }
+            robot.keyTap(key);
 
-            // Check if this is a toggle key (Caps Lock, Num Lock, Scroll Lock)
-            const isToggleKey = keyType === AppConfig.KEY_BUTTONS.CAPS_LOCK ||
-                                keyType === AppConfig.KEY_BUTTONS.NUM_LOCK ||
-                                keyType === AppConfig.KEY_BUTTONS.SCROLL_LOCK;
+            await this.delay(10);
 
-            if (isToggleKey) {
-                // Toggle keys need longer delays on macOS to register
-                // Press and release to turn ON (with visible LED blink)
-                await keyboard.pressKey(key);
-                await this.delay(50); // Longer delay for toggle keys
-                await keyboard.releaseKey(key);
-                await this.delay(100); // Allow LED to be visible
-
-                // Press and release again to turn OFF
-                await keyboard.pressKey(key);
-                await this.delay(50);
-                await keyboard.releaseKey(key);                
-                logger.debug(`Keyboard toggle key ${keyType} pressed (on/off cycle)`);
-            } else {
-                // Normal keys - single press
-                await keyboard.pressKey(key);
-                await this.delay(10);
-                await keyboard.releaseKey(key);
-                
-                logger.debug(`Keyboard key ${keyType} pressed`);
-            }
+            logger.debug(`Keyboard key ${keyType} pressed`);
         } catch (error: any) {
             logger.error(`Keyboard press error (${keyType}):`, error);
         }
     }
     
-    private mapKeyButtonToKey(keyType: string): Key | null {
+    private mapKeyButtonToKey(keyType: string): string | null {
         switch (keyType) {
-            case AppConfig.KEY_BUTTONS.SCROLL_LOCK:
-                return Key.ScrollLock;
             case AppConfig.KEY_BUTTONS.F13:
-                return Key.F13;
+                return 'f13';
             case AppConfig.KEY_BUTTONS.F14:
-                return Key.F14;
+                return 'f14';
             case AppConfig.KEY_BUTTONS.F15:
-                return Key.F15;
+                return 'f15';
             case AppConfig.KEY_BUTTONS.F16:
-                return Key.F16;
+                return 'f16';
             case AppConfig.KEY_BUTTONS.F17:
-                return Key.F17;
+                return 'f17';
             case AppConfig.KEY_BUTTONS.F18:
-                return Key.F18;
+                return 'f18';
             case AppConfig.KEY_BUTTONS.F19:
-                return Key.F19;
+                return 'f19';
             case AppConfig.KEY_BUTTONS.F20:
-                return Key.F20;
-            case AppConfig.KEY_BUTTONS.NUM_LOCK:
-                return Key.NumLock;
-            case AppConfig.KEY_BUTTONS.CAPS_LOCK:
-                return Key.CapsLock;
-            case AppConfig.KEY_BUTTONS.PAUSE:
-                return Key.Pause;
+                return 'f20';
             default:
                 return null;
         }
@@ -128,7 +98,7 @@ export class AutomationService {
             const currentY = Math.round(startPos.y + (targetPos.y - startPos.y) * (i / steps));
             
             try {
-                await mouse.setPosition({ x: currentX, y: currentY });
+                robot.moveMouse(currentX, currentY);
                 if (i < steps) {
                     await this.delay(stepDelay);
                 }
@@ -146,7 +116,7 @@ export class AutomationService {
             const returnY = Math.round(targetPos.y + (startPos.y - targetPos.y) * (i / steps));
             
             try {
-                await mouse.setPosition({ x: returnX, y: returnY });
+                robot.moveMouse(returnX, returnY);
                 if (i < steps) {
                     await this.delay(stepDelay);
                 }

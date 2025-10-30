@@ -1,6 +1,6 @@
 {
   "name": "afk-companion",
-  "version": "1.2.1",
+  "version": "1.2.2 ",
   "description": "AFK Companion - Anti-idle utility to prevent being marked as away",
   "main": "dist-ts/main.js",
   "scripts": {
@@ -110,6 +110,7 @@
       "index.html",
       "styles/**/*",
       "assets/**/*",
+      "steamworks_sdk/**/*",
       "package.json",
       "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
       "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",

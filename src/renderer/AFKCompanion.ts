@@ -4,6 +4,7 @@ import { StatisticsManager } from './managers/StatisticsManager';
 import { TimerManager } from './managers/TimerManager';
 import { UIManager } from './managers/UIManager';
 import { MouseActionManager } from './managers/MouseActionManager';
+import { ConfigPersistence } from './managers/ConfigPersistence';
 
 /**
  * Main AFK Companion Controller - Orchestrates all components
@@ -11,6 +12,7 @@ import { MouseActionManager } from './managers/MouseActionManager';
 export class AFKCompanion {
     private isActive: boolean = false;
     private config: RuntimeConfig;
+    private configPersistence: ConfigPersistence;
     private stats: StatisticsManager;
     private ui: UIManager;
     private mouseActionManager: MouseActionManager;
@@ -19,6 +21,7 @@ export class AFKCompanion {
     constructor() {
         // Initialize components
         this.config = RuntimeConfig.getInstance();
+        this.configPersistence = new ConfigPersistence();
         this.stats = new StatisticsManager();
         this.ui = new UIManager();
         this.mouseActionManager = new MouseActionManager();
@@ -32,7 +35,11 @@ export class AFKCompanion {
         this.init();
     }
     
-    private init(): void {
+    private async init(): Promise<void> {
+        // Load configuration from persistence
+        const savedConfig = await this.configPersistence.loadConfig();
+        this.config.loadSettings(savedConfig);
+        
         // Initialize UI elements first
         this.ui.initialize();
         
@@ -53,8 +60,6 @@ export class AFKCompanion {
         
         // Initialize advanced stats display immediately
         this.updateAdvancedStats();
-
-        this.config.clearStorageAndReset();
     }
     
     private initializeTabs(): void {
@@ -146,22 +151,25 @@ export class AFKCompanion {
         }
     }
     
-    private onIntervalChange(interval: number): void {
-        this.config.setInterval(interval);
+    private async onIntervalChange(interval: number): Promise<void> {
+        this.config.setTimerInterval(interval);
+        await this.configPersistence.saveConfig(this.config.getAllSettings());
         if (this.isActive) {
             this.restart();
         }
     }
     
-    private onPixelDistanceChange(distance: number): void {
-        this.config.setPixelDistance(distance);
+    private async onPixelDistanceChange(distance: number): Promise<void> {
+        this.config.setMousePixelDistance(distance);
+        await this.configPersistence.saveConfig(this.config.getAllSettings());
         if (this.isActive) {
             this.restart();
         }
     }
     
-    private onKeyButtonChange(button: string): void {
-        this.config.setKeyButton(button);
+    private async onKeyButtonChange(button: string): Promise<void> {
+        this.config.keyButton = button;
+        await this.configPersistence.saveConfig(this.config.getAllSettings());
         if (this.isActive) {
             this.restart();
         }

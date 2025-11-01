@@ -59,6 +59,36 @@ export class IPCHandler {
         ipcMain.handle('achievement-track-action', (event: IpcMainInvokeEvent, totalActions: number) => {
             this.steamManager?.checkAchievements(totalActions);
         });
+
+        // Steam Cloud - Check if enabled
+        ipcMain.handle('steam-cloud-enabled', () => {
+            if (!this.steamManager) return false;
+            return this.steamManager.isCloudEnabledForAccount() && this.steamManager.isCloudEnabledForApp();
+        });
+
+        // Steam Cloud - Save stats
+        ipcMain.handle('steam-cloud-save-stats', async (event: IpcMainInvokeEvent, stats: any) => {
+            if (!this.steamManager) return false;
+            return await this.steamManager.savePersistentStats(stats);
+        });
+
+        // Steam Cloud - Load stats
+        ipcMain.handle('steam-cloud-load-stats', async () => {
+            if (!this.steamManager) return null;
+            return await this.steamManager.loadPersistentStats();
+        });
+
+        // Steam Cloud - Save config
+        ipcMain.handle('steam-cloud-save-config', async (event: IpcMainInvokeEvent, config: any) => {
+            if (!this.steamManager) return false;
+            return await this.steamManager.saveConfiguration(config);
+        });
+
+        // Steam Cloud - Load config
+        ipcMain.handle('steam-cloud-load-config', async () => {
+            if (!this.steamManager) return null;
+            return await this.steamManager.loadConfiguration();
+        });
         
         logger.info('IPC handlers registered successfully');
     }
@@ -89,7 +119,12 @@ export class IPCHandler {
             'simulate-mouse-movement',
             'jiggle-window',
             'open-external',
-            'achievement-track-action'
+            'achievement-track-action',
+            'steam-cloud-enabled',
+            'steam-cloud-save-stats',
+            'steam-cloud-load-stats',
+            'steam-cloud-save-config',
+            'steam-cloud-load-config'
         ];
         
         handlers.forEach(handler => {

@@ -1,7 +1,7 @@
 import { logger } from '../../utils/Logger';
 import { AppConfig } from '../../config/AppConfig';
 import { ActionResult } from './MouseActionManager';
-import { SteamManager } from '../../main/managers/SteamManager';
+import { ipcRenderer } from 'electron';
 
 interface Stats {
     actionCount: number;
@@ -17,24 +17,24 @@ interface AdvancedStatsDisplay {
 }
 
 /**
- * Statistics Manager - Handles tracking and statistics with Steam Cloud sync
+ * Statistics Manager - Handles tracking and statistics with Steam Cloud sync via IPC
  */
 export class StatisticsManager {
     private actionCount: number = 0;
     private startTime: number | null = null;
     private lastActionTime: number | null = null;
-    private steamManager: SteamManager | null = null;
 
-    constructor(steamManager?: SteamManager) {
-        this.steamManager = steamManager || null;
+    constructor() {
         this.initializePersistentStats();
     }
 
     private async initializePersistentStats(): Promise<void> {
         // Try to load from Steam Cloud first (if available and enabled)
-        if (this.steamManager && this.steamManager.isCloudEnabledForAccount() && this.steamManager.isCloudEnabledForApp()) {
+        const cloudEnabled = await ipcRenderer.invoke('steam-cloud-enabled');
+        
+        if (cloudEnabled) {
             try {
-                const cloudStats = await this.steamManager.loadPersistentStats();
+                const cloudStats = await ipcRenderer.invoke('steam-cloud-load-stats');
                 if (cloudStats) {
                     // Sync cloud data to localStorage
                     localStorage.setItem(AppConfig.STORAGE.KEYS.PERSISTENT_STATS, JSON.stringify(cloudStats));
@@ -71,20 +71,17 @@ export class StatisticsManager {
     }
 
     private async savePersistentStats(stats: AdvancedStatsDisplay): Promise<void> {
-        logger.debug('Saving persistent stats:', stats);
+        console.log('Saving persistent stats:', stats);
         
         // Always save to localStorage (fallback/backup)
         localStorage.setItem(AppConfig.STORAGE.KEYS.PERSISTENT_STATS, JSON.stringify(stats));
+
+        const cloudEnabled = await ipcRenderer.invoke('steam-cloud-enabled');
         
         // Also save to Steam Cloud if available and enabled
-        if (this.steamManager && this.steamManager.isCloudEnabledForAccount() && this.steamManager.isCloudEnabledForApp()) {
+        if (cloudEnabled) {
             try {
-                const success = await this.steamManager.savePersistentStats(stats);
-                if (success) {
-                    logger.info('Stats saved to both localStorage and Steam Cloud');
-                } else {
-                    logger.warn('Steam Cloud save failed, but localStorage updated');
-                }
+                await ipcRenderer.invoke('steam-cloud-save-stats', stats);
             } catch (error) {
                 logger.error('Error saving to Steam Cloud:', error);
             }

@@ -54,7 +54,8 @@ export class RuntimeConfig {
         return {
             interval: this.getInterval(),
             pixelDistance: this.getPixelDistance(),
-            keyButton: this.getKeyButton()
+            keyButton: this.getKeyButton(),
+            lastModified: Date.now()
         };
     }
 
@@ -81,4 +82,5 @@ export interface ConfigurationSettings {
     interval: number; // milliseconds - timer interval
     pixelDistance: number; // pixels - mouse movement distance
     keyButton: string; // keyboard button to press: 'none', 'scrolllock', 'f15', etc.
+    lastModified: number; // timestamp - when this config was last modified
 }

@@ -68,7 +68,8 @@ export class AppConfig {
             INTERVAL: 'afk-companion-interval',
             PIXEL_DISTANCE: 'afk-companion-pixelDistance',
             KEY_BUTTON: 'afk-companion-keyButton',
-            PERSISTENT_STATS: 'afk-persistent-stats'
+            PERSISTENT_STATS: 'afk-persistent-stats',
+            LAST_MODIFIED: 'afk-companion-lastModified'
         }
     } as const;
 

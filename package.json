@@ -139,7 +139,6 @@
   },
   "dependencies": {
     "@jitsi/robotjs": "^0.6.18",
-    "@nut-tree-fork/nut-js": "^4.2.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "steamworks-ffi-node": "^0.6.2"

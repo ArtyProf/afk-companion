@@ -23,8 +23,6 @@
    ```bash
    npm install
    ```
-   
-   > **Technical Note**: This app uses `@nut-tree-fork/nut-js` for cross-platform automation. While the official nut-js documentation mentions `npm i @nut-tree/nut-js`, the original package is no longer maintained. We use the actively maintained fork which provides identical functionality and API compatibility.
 
 2. ▶️ **Run the Application**:
    ```bash
@@ -40,8 +38,7 @@
 ## 🔧 How It Works
 
 ### 🌐 **Universal Cross-Platform Solution**
-- 🎯 **nut-js Integration**: Uses modern @nut-tree-fork/nut-js library for all platforms (Windows, Linux, macOS)
-  > **Note**: We use `@nut-tree-fork/nut-js` instead of the original `@nut-tree/nut-js` as the original package is no longer maintained. The fork is actively maintained and provides the same API.
+- 🎯 **RobotJS Integration**: Uses @jitsi/robotjs library for all platforms (Windows, Linux, macOS)
 - 🖱️ **Smooth Mouse Movement**: Native step-by-step interpolation on all platforms
 - 🔐 **ScrollLock Toggle**: Universal key press simulation (on/off) to prevent system sleep
 - 🎮 **Steam Compatible**: Works in Steam environments without PATH restrictions
@@ -52,7 +49,7 @@
 ### 🏗️ **Architecture**
 - 🔄 **Simple & Reliable**: Removed complex background monitoring for stability
 - 🗂️ **System Tray Persistence**: App never quits when window closed
-- ⚡ **Efficient Processing**: Minimal resource usage with native nut-js automation
+- ⚡ **Efficient Processing**: Minimal resource usage with native automation
 - 🎮 **Universal Compatibility**: Works everywhere Node.js runs (Windows, Linux, macOS, Steam)
 
 ## 🎯 Movement System
@@ -142,7 +139,7 @@ Steam deployment includes both Windows portable executable, macOs and Linux pack
 - If issues persist, try reducing the interval to 30 seconds or 1 minute
 
 **🎮 Not working on Steam Deck/Linux:**
-- The app now uses universal nut-js automation - no external dependencies required
+- The app now uses RobotJS for cross-platform automation
 - Check console logs for error messages if mouse movement fails
 - Try running the app from terminal to see detailed error output
 
@@ -180,7 +177,7 @@ This tool is for legitimate use cases like preventing unwanted AFK timeouts. Ple
 ### Performance
 - **Resource Usage**: ~50-100MB RAM, minimal CPU usage
 - **Background Throttling**: Disabled to ensure consistent operation
-- **System Integration**: Universal nut-js automation library
+- **System Integration**: RobotJS automation library
 
 ### Security
 - **No Network Access**: Completely offline operation

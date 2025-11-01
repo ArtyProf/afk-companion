@@ -1,6 +1,7 @@
 import { logger } from '../../utils/Logger';
 import { AppConfig } from '../../config/AppConfig';
 import { ActionResult } from './MouseActionManager';
+import { SteamManager } from '../../main/managers/SteamManager';
 
 interface Stats {
     actionCount: number;
@@ -16,18 +17,36 @@ interface AdvancedStatsDisplay {
 }
 
 /**
- * Statistics Manager - Handles tracking and statistics
+ * Statistics Manager - Handles tracking and statistics with Steam Cloud sync
  */
 export class StatisticsManager {
     private actionCount: number = 0;
     private startTime: number | null = null;
     private lastActionTime: number | null = null;
+    private steamManager: SteamManager | null = null;
 
-    constructor() {
+    constructor(steamManager?: SteamManager) {
+        this.steamManager = steamManager || null;
         this.initializePersistentStats();
     }
 
-    private initializePersistentStats(): void {
+    private async initializePersistentStats(): Promise<void> {
+        // Try to load from Steam Cloud first (if available and enabled)
+        if (this.steamManager && this.steamManager.isCloudEnabledForAccount() && this.steamManager.isCloudEnabledForApp()) {
+            try {
+                const cloudStats = await this.steamManager.loadPersistentStats();
+                if (cloudStats) {
+                    // Sync cloud data to localStorage
+                    localStorage.setItem(AppConfig.STORAGE.KEYS.PERSISTENT_STATS, JSON.stringify(cloudStats));
+                    logger.info('Loaded stats from Steam Cloud and synced to localStorage');
+                    return;
+                }
+            } catch (error) {
+                logger.warn('Failed to load from Steam Cloud, falling back to localStorage:', error);
+            }
+        }
+
+        // Fallback to localStorage if cloud unavailable or disabled
         if (!localStorage.getItem(AppConfig.STORAGE.KEYS.PERSISTENT_STATS)) {
             const defaultStats: AdvancedStatsDisplay = {
                 totalSessions: 0,
@@ -35,6 +54,7 @@ export class StatisticsManager {
                 totalActions: 0
             };
             localStorage.setItem(AppConfig.STORAGE.KEYS.PERSISTENT_STATS, JSON.stringify(defaultStats));
+            logger.info('Initialized default stats in localStorage');
         }
     }
 
@@ -50,9 +70,27 @@ export class StatisticsManager {
         };
     }
 
-    private savePersistentStats(stats: AdvancedStatsDisplay): void {
+    private async savePersistentStats(stats: AdvancedStatsDisplay): Promise<void> {
         logger.debug('Saving persistent stats:', stats);
+        
+        // Always save to localStorage (fallback/backup)
         localStorage.setItem(AppConfig.STORAGE.KEYS.PERSISTENT_STATS, JSON.stringify(stats));
+        
+        // Also save to Steam Cloud if available and enabled
+        if (this.steamManager && this.steamManager.isCloudEnabledForAccount() && this.steamManager.isCloudEnabledForApp()) {
+            try {
+                const success = await this.steamManager.savePersistentStats(stats);
+                if (success) {
+                    logger.info('Stats saved to both localStorage and Steam Cloud');
+                } else {
+                    logger.warn('Steam Cloud save failed, but localStorage updated');
+                }
+            } catch (error) {
+                logger.error('Error saving to Steam Cloud:', error);
+            }
+        } else {
+            logger.debug('Steam Cloud disabled or unavailable, stats saved to localStorage only');
+        }
     }
     
     start(): void {

@@ -8,7 +8,11 @@ export class AppConfig {
     static readonly STEAM = {
         APP_ID: 2609100,
         ACHIEVEMENT_THRESHOLDS: [15, 30, 45, 60, 75, 90, 105, 120, 135, 150],
-        ACHIEVEMENT_PREFIX: 'NEW_ACHIEVEMENT_'
+        ACHIEVEMENT_PREFIX: 'NEW_ACHIEVEMENT_',
+        CLOUD: {
+            STATS_FILE: 'stats.sav',
+            CONFIG_FILE: 'config.sav'
+        }
     } as const;
 
     // ==================== ANIMATION CONFIGURATION ====================
@@ -30,7 +34,6 @@ export class AppConfig {
     // ==================== KEYBOARD BUTTON CONFIGURATION ====================
     static readonly KEY_BUTTONS = {
         NONE: 'none',
-        SCROLL_LOCK: 'scrolllock',
         F13: 'f13',
         F14: 'f14',
         F15: 'f15',
@@ -38,10 +41,7 @@ export class AppConfig {
         F17: 'f17',
         F18: 'f18',
         F19: 'f19',
-        F20: 'f20',
-        NUM_LOCK: 'numlock',
-        CAPS_LOCK: 'capslock',
-        PAUSE: 'pause'
+        F20: 'f20'
     } as const;
     
     // ==================== TIMER CONFIGURATION ====================

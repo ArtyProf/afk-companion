@@ -1,5 +1,6 @@
 import { BrowserWindow, BrowserWindowConstructorOptions, Event } from 'electron';
 import { IconResolver } from '../../utils/IconResolver';
+import * as path from 'path';
 
 /**
  * Window Manager - Handles main window creation and lifecycle
@@ -33,8 +34,14 @@ export class WindowManager {
         // Create the browser window
         this.mainWindow = new BrowserWindow(this.windowConfig);
         
-        // Load the index.html
-        this.mainWindow.loadFile('index.html');
+        // Load the webpack-built index.html from dist-ts/renderer directory
+        // In dev: dist-ts/renderer is at project root. In production: relative to app.asar
+        const isDev = process.env.NODE_ENV !== 'production';
+        const htmlPath = isDev 
+            ? path.join(process.cwd(), 'dist-ts/index.html')
+            : path.join(__dirname, '../index.html');
+        
+        this.mainWindow.loadFile(htmlPath);
         
         // Show window when ready
         this.mainWindow.once('ready-to-show', () => {

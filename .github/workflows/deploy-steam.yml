@@ -111,8 +111,11 @@ jobs:
       run: |
         echo "Building Windows executable..."
         set CSC_IDENTITY_AUTO_DISCOVERY=false
+        npm run build:ts
+        npm run build:webpack
         npm run build:win
       env:
+        NODE_ENV: production
         CSC_IDENTITY_AUTO_DISCOVERY: false
 
     - name: Verify build
@@ -154,7 +157,11 @@ jobs:
     - name: Build Linux version
       run: |
         echo "Building Linux executable..."
+        npm run build:ts
+        npm run build:webpack
         npm run build:linux
+      env:
+        NODE_ENV: production
 
     - name: Verify build
       run: |
@@ -200,8 +207,11 @@ jobs:
     - name: Build macOS universal version
       run: |
         echo "Building macOS universal executable..."
+        npm run build:ts
+        npm run build:webpack
         npm run build:mac
       env:
+        NODE_ENV: production
         CSC_IDENTITY_AUTO_DISCOVERY: false
 
     - name: Verify build

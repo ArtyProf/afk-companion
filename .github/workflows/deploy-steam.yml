@@ -367,6 +367,88 @@ jobs:
         
         ls -la release-assets/
 
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        VERSION="${{ needs.check-version.outputs.version }}"
+        
+        # Fetch all tags and history
+        git fetch --tags --unshallow 2>/dev/null || git fetch --tags 2>/dev/null || true
+        
+        # Get the previous tag (excluding current if it exists)
+        LAST_TAG=$(git tag -l --sort=-version:refname | grep -v "^${VERSION}$" | head -1)
+        
+        if [ -z "$LAST_TAG" ]; then
+          echo "📝 No previous tag found, generating release notes from all history..."
+          echo "## 📝 What's Changed" > release_notes.md
+          echo "" >> release_notes.md
+          # All commits for first release
+          git log --pretty=format:"- %s (%h)" >> release_notes.md
+        else
+          echo "📝 Generating release notes from ${LAST_TAG} to current HEAD"
+          echo "Previous tag: $LAST_TAG"
+          echo "Current HEAD: $(git rev-parse HEAD)"
+          
+          echo "## 📝 What's Changed" > release_notes.md
+          echo "" >> release_notes.md
+          # All commits between the previous tag and current HEAD
+          git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%h)" >> release_notes.md
+        fi
+        
+        echo "" >> release_notes.md
+        echo "" >> release_notes.md
+        
+        # Add download section
+        cat >> release_notes.md << 'EOF'
+        ## 📥 Downloads
+        - **🪟 Windows**: `afk-companion-${{ needs.check-version.outputs.version }}-windows.exe` - Portable executable
+        - **📦 Linux Archive**: `afk-companion-${{ needs.check-version.outputs.version }}.tar.gz` - Compressed package
+        - **🍎 macOS**: `afk-companion-${{ needs.check-version.outputs.version }}-universal.dmg` - Universal installer (Intel & Apple Silicon)
+        
+        ## 🚀 Steam Deployment
+        - **🆔 App ID**: 2609100
+        - **🪟 Windows Depot**: 2609101
+        - **🐧 Linux Depot**: 2609102
+        - **🍎 macOS Depot**: 2609103 (Universal Binary)
+        
+        ## ✨ Features
+        - 🎯 Anti-idle utility for gaming and work
+        - 🖱️ Cross-platform mouse and keyboard simulation
+        - 🛡️ System tray operation
+        - ⏱️ Customizable intervals and actions
+        - 🏠 Local operation with no network requirements
+        - 🔧 Safe, non-intrusive actions
+        - 🌍 **Universal macOS support** (Intel & Apple Silicon)
+        - ☁️ **Steam Cloud integration** for cross-device sync
+        
+        ## 📋 How to Use
+        1. Download the appropriate version for your OS
+        2. Run the executable (no installation required)
+        3. Configure your preferred settings
+        4. Click "Start" to prevent AFK/idle status
+        
+        ## 💻 System Requirements
+        - **Windows**: Windows 10+ (x64)
+        - **Linux**: Any modern distribution (x64)
+        - **macOS**: macOS 10.13+ (Universal: Intel & Apple Silicon)
+        
+        ---
+        **Made with Electron** ⚛️ | **Auto-deployed via GitHub Actions** 🤖
+        
+        EOF
+        
+        echo "" >> release_notes.md
+        
+        # Add changelog link
+        if [ -n "$LAST_TAG" ]; then
+          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${LAST_TAG}...${VERSION}" >> release_notes.md
+        else
+          echo "**Full Changelog**: https://github.com/${{ github.repository }}/commits/${VERSION}" >> release_notes.md
+        fi
+        
+        echo "✅ Release notes created"
+        cat release_notes.md
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       env:
@@ -374,46 +456,10 @@ jobs:
       with:
         tag_name: ${{ needs.check-version.outputs.version }}
         name: 🎮 AFK Companion ${{ needs.check-version.outputs.version }}
-        body: |
-          ## 🎮 AFK Companion Release ${{ needs.check-version.outputs.version }}
-          
-          ### 📥 Downloads
-          - **🪟 Windows**: `afk-companion-${{ needs.check-version.outputs.version }}-windows.exe` - Portable executable
-          - **📦 Linux Archive**: `afk-companion-${{ needs.check-version.outputs.version }}.tar.gz` - Compressed package (version pattern: afk-companion-X.Y.Z.tar.gz)
-          - **🍎 macOS**: `afk-companion-${{ needs.check-version.outputs.version }}-universal.dmg` - Universal installer (Intel & Apple Silicon)
-          
-          ### 🚀 Steam Deployment
-          - **🆔 App ID**: 2609100
-          - **🪟 Windows Depot**: 2609101
-          - **🐧 Linux Depot**: 2609102
-          - **🍎 macOS Depot**: 2609103 (Universal Binary)
-          
-          ### ✨ Features
-          - 🎯 Anti-idle utility for gaming and work
-          - 🖱️ Cross-platform mouse and keyboard simulation
-          - 🛡️ System tray operation
-          - ⏱️ Customizable intervals and actions
-          - 🏠 Local operation with no network requirements
-          - 🔧 Safe, non-intrusive actions
-          - 🌍 **Universal macOS support** (Intel & Apple Silicon)
-          
-          ### 📋 How to Use
-          1. Download the appropriate version for your OS
-          2. Run the executable (no installation required)
-          3. Configure your preferred settings
-          4. Click "Start" to prevent AFK/idle status
-          
-          ### 💻 System Requirements
-          - **Windows**: Windows 10+ (x64)
-          - **Linux**: Any modern distribution (x64)
-          - **macOS**: macOS 10.13+ (Universal: Intel & Apple Silicon)
-          
-          ---
-          **Made with Electron** ⚛️ | **Auto-deployed via GitHub Actions** 🤖
+        body_path: release_notes.md
         files: release-assets/*
         draft: false
         prerelease: false
-        generate_release_notes: true
 
     - name: Notify deployment status
       if: always()

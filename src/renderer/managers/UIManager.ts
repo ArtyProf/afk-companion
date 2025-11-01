@@ -64,6 +64,26 @@ export class UIManager {
         if (this.elements.nextAction) this.elements.nextAction.textContent = isActive ? timeString : '--';
     }
     
+    /**
+     * Update form inputs with loaded configuration values
+     */
+    updateConfigValues(config: { interval: number; pixelDistance: number; keyButton: string }): void {
+        const intervalSelect = document.getElementById('interval-select') as HTMLSelectElement;
+        if (intervalSelect) {
+            intervalSelect.value = config.interval.toString();
+        }
+        
+        const pixelDistanceInput = document.getElementById('pixel-distance') as HTMLInputElement;
+        if (pixelDistanceInput) {
+            pixelDistanceInput.value = config.pixelDistance.toString();
+        }
+        
+        const keyButtonSelect = document.getElementById('key-button-select') as HTMLSelectElement;
+        if (keyButtonSelect) {
+            keyButtonSelect.value = config.keyButton;
+        }
+    }
+    
     bindEvents(callbacks: UICallbacks): void {
         // Toggle button
         if (this.elements.toggleBtn) {

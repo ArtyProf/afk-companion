@@ -43,6 +43,13 @@ export class AFKCompanion {
         // Initialize UI elements first
         this.ui.initialize();
         
+        // Update UI form inputs with loaded config values
+        this.ui.updateConfigValues({
+            interval: savedConfig.interval,
+            pixelDistance: savedConfig.pixelDistance,
+            keyButton: savedConfig.keyButton
+        });
+        
         // Bind UI events
         this.ui.bindEvents({
             onToggle: () => this.toggle(),

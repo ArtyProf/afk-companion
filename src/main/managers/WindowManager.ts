@@ -1,4 +1,4 @@
-import { BrowserWindow, BrowserWindowConstructorOptions, Event } from 'electron';
+import { BrowserWindow, BrowserWindowConstructorOptions, Event, app } from 'electron';
 import { IconResolver } from '../../utils/IconResolver';
 import * as path from 'path';
 
@@ -34,12 +34,19 @@ export class WindowManager {
         // Create the browser window
         this.mainWindow = new BrowserWindow(this.windowConfig);
         
-        // Load the webpack-built index.html from dist-ts/renderer directory
-        // In dev: dist-ts/renderer is at project root. In production: relative to app.asar
-        const isDev = process.env.NODE_ENV !== 'production';
-        const htmlPath = isDev 
-            ? path.join(process.cwd(), 'dist-ts/index.html')
-            : path.join(__dirname, '../index.html');
+        // Use app.isPackaged instead of NODE_ENV for reliable detection
+        const isDev = !app.isPackaged;
+        let htmlPath: string;
+        
+        if (isDev) {
+            // Development: files are in project directory
+            htmlPath = path.join(process.cwd(), 'dist-ts', 'index.html');
+        } else {
+            // Production: files are packaged in app.asar
+            // app.getAppPath() returns the path to app.asar (or unpacked app directory)
+            const appPath = app.getAppPath();
+            htmlPath = path.join(appPath, 'dist-ts', 'index.html');
+        }
         
         this.mainWindow.loadFile(htmlPath);
         

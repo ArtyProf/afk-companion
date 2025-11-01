@@ -115,7 +115,6 @@ jobs:
         npm run build:webpack
         npm run build:win
       env:
-        NODE_ENV: production
         CSC_IDENTITY_AUTO_DISCOVERY: false
 
     - name: Verify build
@@ -160,8 +159,6 @@ jobs:
         npm run build:ts
         npm run build:webpack
         npm run build:linux
-      env:
-        NODE_ENV: production
 
     - name: Verify build
       run: |
@@ -211,7 +208,6 @@ jobs:
         npm run build:webpack
         npm run build:mac
       env:
-        NODE_ENV: production
         CSC_IDENTITY_AUTO_DISCOVERY: false
 
     - name: Verify build
